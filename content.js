@@ -49,10 +49,17 @@
         --selected-bg: ${isDark ? '#312e81' : '#e0e7ff'};
         --shadow: ${isDark ? '-10px 0 25px -5px rgba(0, 0, 0, 0.6)' : '-10px 0 25px -5px rgba(0, 0, 0, 0.1)'};
         --accent-color: var(--primary-color);
+        text-align: initial;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+        line-height: 1.4;
       }
       
-      :host(.fb-searching) {
+      :host(.fast-bookmark-searching) {
         --accent-color: #f59e0b; /* Amber for search mode */
+      }
+      
+      :host *, :host *::before, :host *::after {
+        box-sizing: border-box;
       }
 
       #overlay {
@@ -179,7 +186,12 @@
         background: var(--secondary-text);
       }
 
-      .result-item {
+      .fast-bookmark-result-item {
+        width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+        border: 0;
+        background: transparent;
         padding: 8px 16px;
         display: flex;
         align-items: center;
@@ -189,39 +201,44 @@
         user-select: none;
       }
 
-      .result-item:hover {
+      .fast-bookmark-result-item:hover {
         background: var(--hover-bg);
       }
 
-      .result-item.selected {
+      .fast-bookmark-result-item.fast-bookmark-selected {
         background: var(--selected-bg);
       }
 
-      .tree-node {
+      .fast-bookmark-tree-node {
         display: flex;
         flex-direction: column;
+        list-style: none;
+        margin: 0;
+        padding: 0;
       }
 
-      .folder-toggle {
+      .fast-bookmark-folder-toggle {
         width: 16px;
         height: 16px;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
         cursor: pointer;
         transition: transform 0.2s;
         color: var(--secondary-text);
       }
 
-      .folder-toggle.expanded {
+      .fast-bookmark-folder-toggle.fast-bookmark-expanded {
         transform: rotate(90deg);
       }
 
-      .folder-icon {
+      .fast-bookmark-folder-icon {
         color: #f59e0b; /* Slightly warmer amber */
+        display: flex;
       }
 
-      .node-content {
+      .fast-bookmark-node-content {
         display: flex;
         align-items: center;
         gap: 8px;
@@ -229,25 +246,25 @@
         overflow: hidden;
       }
 
-      .indent {
+      .fast-bookmark-indent {
         width: 16px;
         flex-shrink: 0;
       }
 
-      .result-info {
+      .fast-bookmark-result-info {
         display: flex;
         flex-direction: column;
         overflow: hidden;
         flex-grow: 1;
       }
 
-      .result-header {
+      .fast-bookmark-result-header {
         display: flex;
         align-items: center;
         gap: 8px;
       }
 
-      .result-path {
+      .fast-bookmark-result-path {
         font-size: 10px;
         color: var(--accent-color);
         background: ${isDark ? 'rgba(0,0,0,0.12)' : 'rgba(0,0,0,0.04)'};
@@ -258,7 +275,7 @@
         display: ${settings.showPath ? 'inline-block' : 'none'};
       }
 
-      .result-title {
+      .fast-bookmark-result-title {
         font-weight: 500;
         font-size: 14px;
         color: var(--text-color);
@@ -267,7 +284,7 @@
         text-overflow: ellipsis;
       }
 
-      .result-url {
+      .fast-bookmark-result-url {
         font-size: 12px;
         color: var(--secondary-text);
         white-space: nowrap;
@@ -276,13 +293,13 @@
         margin-top: 1px;
       }
 
-      .favicon {
+      .fast-bookmark-favicon {
         width: 16px;
         height: 16px;
         flex-shrink: 0;
       }
 
-      .highlight {
+      .fast-bookmark-highlight {
         color: var(--accent-color);
         font-weight: 700;
         background: ${isDark ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.12)'};
@@ -463,10 +480,10 @@
 
   function renderNode(node, container, depth) {
     const li = document.createElement('li');
-    li.className = 'tree-node';
+    li.className = 'fast-bookmark-tree-node';
     
     const itemEl = document.createElement('div');
-    itemEl.className = 'result-item';
+    itemEl.className = 'fast-bookmark-result-item';
     itemEl.style.paddingLeft = `${depth * 16 + 16}px`;
 
     const isFolder = !!node.children;
@@ -474,22 +491,22 @@
 
     if (isFolder) {
       const toggle = document.createElement('div');
-      toggle.className = `folder-toggle ${isExpanded ? 'expanded' : ''}`;
+      toggle.className = `fast-bookmark-folder-toggle ${isExpanded ? 'fast-bookmark-expanded' : ''}`;
       toggle.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
       itemEl.appendChild(toggle);
 
       const icon = document.createElement('div');
-      icon.className = 'folder-icon';
+      icon.className = 'fast-bookmark-folder-icon';
       icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"></path></svg>`;
       itemEl.appendChild(icon);
     } else {
       // Indent for leaf nodes to align with folders that have toggles
       const spacer = document.createElement('div');
-      spacer.className = 'indent';
+      spacer.className = 'fast-bookmark-indent';
       itemEl.appendChild(spacer);
 
       const favicon = document.createElement('img');
-      favicon.className = 'favicon';
+      favicon.className = 'fast-bookmark-favicon';
       const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(node.url)}&size=32`;
       favicon.src = faviconUrl;
       favicon.onerror = () => {
@@ -499,7 +516,7 @@
     }
 
     const info = document.createElement('div');
-    info.className = 'result-info';
+    info.className = 'fast-bookmark-result-info';
     
     let title = node.title;
     if (!title && node.url) {
@@ -511,7 +528,7 @@
       }
     }
 
-    info.innerHTML = `<span class="result-title">${title || 'Untitled'}</span>`;
+    info.innerHTML = `<span class="fast-bookmark-result-title">${title || 'Untitled'}</span>`;
     itemEl.appendChild(info);
 
     itemEl.addEventListener('click', (e) => {
@@ -558,10 +575,10 @@
     displayResults.forEach((result, index) => {
       const item = result.item || result;
       const li = document.createElement('li');
-      li.className = 'tree-node'; // Use same container class for consistency
+      li.className = 'fast-bookmark-tree-node';
       
       const itemEl = document.createElement('div');
-      itemEl.className = `result-item ${index === selectedIndex ? 'selected' : ''}`;
+      itemEl.className = `fast-bookmark-result-item ${index === selectedIndex ? 'fast-bookmark-selected' : ''}`;
       // Add left padding to align with root level tree nodes (16px indent)
       itemEl.style.paddingLeft = '16px'; 
       
@@ -574,7 +591,7 @@
         let lastIndex = 0;
         match.indices.forEach(([start, end]) => {
           highlighted += text.substring(lastIndex, start);
-          highlighted += `<span class="highlight">${text.substring(start, end + 1)}</span>`;
+          highlighted += `<span class="fast-bookmark-highlight">${text.substring(start, end + 1)}</span>`;
           lastIndex = end + 1;
         });
         highlighted += text.substring(lastIndex);
@@ -596,11 +613,11 @@
       
       // Add indentation spacer to align with folder toggles in tree view
       const spacer = document.createElement('div');
-      spacer.className = 'indent';
+      spacer.className = 'fast-bookmark-indent';
       itemEl.appendChild(spacer);
 
       const favicon = document.createElement('img');
-      favicon.className = 'favicon';
+      favicon.className = 'fast-bookmark-favicon';
       const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(item.url)}&size=32`;
       favicon.src = faviconUrl;
       favicon.onerror = () => {
@@ -609,24 +626,24 @@
       itemEl.appendChild(favicon);
 
       const info = document.createElement('div');
-      info.className = 'result-info';
+      info.className = 'fast-bookmark-result-info';
       
       info.innerHTML = `
-        <div class="result-header">
-          <span class="result-title">${highlightedTitle}</span>
-          ${item.path && settings.showPath ? `<span class="result-path">${item.path}</span>` : ''}
+        <div class="fast-bookmark-result-header">
+          <span class="fast-bookmark-result-title">${highlightedTitle}</span>
+          ${item.path && settings.showPath ? `<span class="fast-bookmark-result-path">${item.path}</span>` : ''}
         </div>
-        <span class="result-url">${highlightedUrl}</span>
+        <span class="fast-bookmark-result-url">${highlightedUrl}</span>
       `;
       itemEl.appendChild(info);
       
       itemEl.addEventListener('click', (e) => {
         if (e.altKey) {
           navigator.clipboard.writeText(item.url).then(() => {
-            const originalTitle = info.querySelector('.result-title').innerHTML;
-            info.querySelector('.result-title').textContent = 'Copied!';
+            const originalTitle = info.querySelector('.fast-bookmark-result-title').innerHTML;
+            info.querySelector('.fast-bookmark-result-title').textContent = 'Copied!';
             setTimeout(() => {
-              info.querySelector('.result-title').innerHTML = originalTitle;
+              info.querySelector('.fast-bookmark-result-title').innerHTML = originalTitle;
             }, 1000);
           });
         } else {
@@ -684,7 +701,7 @@
           container.style.display = 'none'; // Hide container
         }
       }, 200);
-      container.classList.remove('fb-searching');
+      container.classList.remove('fast-bookmark-searching');
     }
   }
 
@@ -703,10 +720,10 @@
       if (fuse) {
         results = fuse.search(query).slice(0, 20);
       }
-      container.classList.add('fb-searching');
+      container.classList.add('fast-bookmark-searching');
     } else {
       results = [];
-      container.classList.remove('fb-searching');
+      container.classList.remove('fast-bookmark-searching');
     }
     selectedIndex = 0;
     renderResults();
@@ -751,7 +768,7 @@
   });
 
   resultsList.addEventListener('scroll', () => {
-    if (!container.classList.contains('searching')) {
+    if (!container.classList.contains('fast-bookmark-searching')) {
       if (scrollSaveTimer) clearTimeout(scrollSaveTimer);
       scrollSaveTimer = setTimeout(() => {
         chrome.runtime.sendMessage({
