@@ -1,0 +1,59 @@
+{
+  "extensionName": {
+    "message": "悬浮书签"
+  },
+  "extensionDesc": {
+    "message": "不挤压网页空间的悬浮书签搜索栏。"
+  },
+  "searchPlaceholder": {
+    "message": "搜索书签..."
+  },
+  "noMatches": {
+    "message": "未找到匹配项"
+  },
+  "noMatchesDesc": {
+    "message": "尝试其他关键词或检查拼写。"
+  },
+  "openHint": {
+    "message": "打开"
+  },
+  "newTabHint": {
+    "message": "新标签页"
+  },
+  "closeHint": {
+    "message": "关闭"
+  },
+  "settingsTitle": {
+    "message": "悬浮书签设置"
+  },
+  "themeLabel": {
+    "message": "主题"
+  },
+  "themeAuto": {
+    "message": "跟随系统"
+  },
+  "themeLight": {
+    "message": "明亮"
+  },
+  "themeDark": {
+    "message": "暗黑"
+  },
+  "searchThresholdLabel": {
+    "message": "搜索灵敏度"
+  },
+  "searchThresholdDesc": {
+    "message": "数值越低越精确，越高越模糊 (0.0 到 1.0)"
+  },
+  "showPathLabel": {
+    "message": "显示文件夹路径"
+  },
+  "showRecentLabel": {
+    "message": "显示最近打开"
+  },
+  "saveButton": {
+    "message": "保存设置"
+  },
+  "savedMessage": {
+    "message": "设置已保存！"
+  }
+}

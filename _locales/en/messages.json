@@ -1,0 +1,59 @@
+{
+  "extensionName": {
+    "message": "Fast Bookmark"
+  },
+  "extensionDesc": {
+    "message": "A floating bookmark search bar that doesn't squeeze your webpage."
+  },
+  "searchPlaceholder": {
+    "message": "Search bookmarks..."
+  },
+  "noMatches": {
+    "message": "No matches found"
+  },
+  "noMatchesDesc": {
+    "message": "Try a different keyword or check your spelling."
+  },
+  "openHint": {
+    "message": "Open"
+  },
+  "newTabHint": {
+    "message": "New Tab"
+  },
+  "closeHint": {
+    "message": "Close"
+  },
+  "settingsTitle": {
+    "message": "Fast Bookmark Settings"
+  },
+  "themeLabel": {
+    "message": "Theme"
+  },
+  "themeAuto": {
+    "message": "Follow System"
+  },
+  "themeLight": {
+    "message": "Light"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "searchThresholdLabel": {
+    "message": "Search Sensitivity"
+  },
+  "searchThresholdDesc": {
+    "message": "Lower is stricter, higher is fuzzier (0.0 to 1.0)"
+  },
+  "showPathLabel": {
+    "message": "Show Folder Path"
+  },
+  "showRecentLabel": {
+    "message": "Show Recent Bookmarks"
+  },
+  "saveButton": {
+    "message": "Save Settings"
+  },
+  "savedMessage": {
+    "message": "Settings saved!"
+  }
+}
