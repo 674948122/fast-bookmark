@@ -55,7 +55,7 @@
       }
       
       :host(.fast-bookmark-searching) {
-        --accent-color: #f59e0b; /* Amber for search mode */
+        --accent-color: yellow; /* Amber for search mode */
       }
       
       :host *, :host *::before, :host *::after {
@@ -84,7 +84,7 @@
       }
 
       #modal {
-        width: 400px;
+        width: 500px;
         max-width: 90vw;
         height: 100vh;
         background: var(--bg-color);
@@ -117,7 +117,7 @@
       #settings-btn {
         cursor: pointer;
         color: var(--secondary-text);
-        display: flex;
+        display: none;
         align-items: center;
         transition: color 0.2s;
       }
@@ -409,9 +409,17 @@
   const settingsBtn = shadow.getElementById('settings-btn');
 
   // Open settings page
-  settingsBtn.addEventListener('click', () => {
-    window.open(chrome.runtime.getURL('options.html'), '_blank');
-  });
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+      try {
+        if (chrome.runtime && typeof chrome.runtime.openOptionsPage === 'function') {
+          chrome.runtime.openOptionsPage();
+          return;
+        }
+      } catch (e) {}
+      window.open(chrome.runtime.getURL('options.html'), '_blank');
+    });
+  }
 
   // Load settings
   function loadSettings(callback) {
