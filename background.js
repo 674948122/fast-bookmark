@@ -142,5 +142,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   }
-});
 
+  if (request.action === "getSidebarState") {
+    chrome.storage.local.get(['sidebarState'], (result) => {
+      const state = result.sidebarState || { expandedFolders: ['1','2'], scrollTop: 0 };
+      sendResponse(state);
+    });
+    return true;
+  }
+
+  if (request.action === "saveSidebarState") {
+    chrome.storage.local.set({ sidebarState: request.state });
+  }
+});

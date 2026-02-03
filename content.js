@@ -18,11 +18,17 @@
     showPath: true,
     showRecent: true
   };
+  let saveSidebarStateTimer = null;
+  let scrollSaveTimer = null;
 
   // Create Shadow DOM container
   const container = document.createElement('div');
   container.id = 'fast-bookmark-container';
   container.style.display = 'none'; // Initially hidden to prevent flash
+  container.style.position = 'fixed';
+  container.style.top = '0';
+  container.style.left = '0';
+  container.style.zIndex = '2147483647';
   document.body.appendChild(container);
 
   const shadow = container.attachShadow({ mode: 'open' });
@@ -45,7 +51,7 @@
         --accent-color: var(--primary-color);
       }
       
-      :host(.searching) {
+      :host(.fb-searching) {
         --accent-color: #f59e0b; /* Amber for search mode */
       }
 
@@ -285,12 +291,15 @@
       }
 
       #empty-state {
-
-      #empty-state {
-        padding: 48px 32px;
+        display: none;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 8px;
+        padding: 0 24px;
         text-align: center;
         color: var(--secondary-text);
-        display: none;
       }
 
       #empty-state svg {
@@ -428,7 +437,7 @@
   function renderResults() {
     resultsList.innerHTML = '';
     if (results.length === 0 && searchInput.value) {
-      emptyState.style.display = 'block';
+      emptyState.style.display = 'flex';
       resultsList.style.display = 'none';
     } else {
       emptyState.style.display = 'none';
@@ -513,6 +522,13 @@
           expandedFolders.add(node.id);
         }
         renderResults();
+        if (saveSidebarStateTimer) clearTimeout(saveSidebarStateTimer);
+        saveSidebarStateTimer = setTimeout(() => {
+          chrome.runtime.sendMessage({
+            action: "saveSidebarState",
+            state: { expandedFolders: Array.from(expandedFolders), scrollTop: resultsList.scrollTop }
+          });
+        }, 200);
       } else {
         if (e.altKey) {
           navigator.clipboard.writeText(node.url);
@@ -642,17 +658,22 @@
     if (isVisible) {
       document.body.style.overflow = 'hidden';
       loadSettings(() => {
-        container.style.display = 'block'; // Show container
+        container.style.display = 'block';
         overlay.style.display = 'flex';
         overlay.offsetHeight;
         overlay.classList.add('visible');
-        
         searchInput.value = '';
         results = [];
         selectedIndex = 0;
-        fetchBookmarks();
-        renderResults();
-        setTimeout(() => searchInput.focus(), 50);
+        chrome.runtime.sendMessage({ action: "getSidebarState" }, (state) => {
+          const folders = state && Array.isArray(state.expandedFolders) ? state.expandedFolders : ['1','2'];
+          expandedFolders = new Set(folders);
+          fetchBookmarks();
+          renderResults();
+          const top = state && typeof state.scrollTop === 'number' ? state.scrollTop : 0;
+          resultsList.scrollTop = top;
+          setTimeout(() => searchInput.focus(), 50);
+        });
       });
     } else {
       document.body.style.overflow = '';
@@ -663,7 +684,7 @@
           container.style.display = 'none'; // Hide container
         }
       }, 200);
-      container.classList.remove('searching');
+      container.classList.remove('fb-searching');
     }
   }
 
@@ -682,10 +703,10 @@
       if (fuse) {
         results = fuse.search(query).slice(0, 20);
       }
-      container.classList.add('searching');
+      container.classList.add('fb-searching');
     } else {
       results = [];
-      container.classList.remove('searching');
+      container.classList.remove('fb-searching');
     }
     selectedIndex = 0;
     renderResults();
@@ -726,6 +747,18 @@
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
       toggle(false);
+    }
+  });
+
+  resultsList.addEventListener('scroll', () => {
+    if (!container.classList.contains('searching')) {
+      if (scrollSaveTimer) clearTimeout(scrollSaveTimer);
+      scrollSaveTimer = setTimeout(() => {
+        chrome.runtime.sendMessage({
+          action: "saveSidebarState",
+          state: { expandedFolders: Array.from(expandedFolders), scrollTop: resultsList.scrollTop }
+        });
+      }, 200);
     }
   });
 
