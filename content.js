@@ -24,11 +24,11 @@
   // Create Shadow DOM container
   const container = document.createElement('div');
   container.id = 'fast-bookmark-container';
-  container.style.display = 'none'; // Initially hidden to prevent flash
-  container.style.position = 'fixed';
-  container.style.top = '0';
-  container.style.left = '0';
-  container.style.zIndex = '2147483647';
+  container.style.display = 'none !important'; // Initially hidden to prevent flash
+  container.style.position = 'fixed !important';
+  container.style.top = '0 !important';
+  container.style.left = '0 !important';
+  container.style.zIndex = '2147483647 !important';
   document.body.appendChild(container);
 
   const shadow = container.attachShadow({ mode: 'open' });
@@ -55,14 +55,14 @@
       }
       
       :host(.fast-bookmark-searching) {
-        --accent-color: yellow; /* Amber for search mode */
+        --accent-color: ${isDark ? '#f59e0b' : '#6d28d9'};
       }
       
       :host *, :host *::before, :host *::after {
         box-sizing: border-box;
       }
 
-      #overlay {
+      #fast-bookmark-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -78,12 +78,12 @@
         transition: opacity 0.3s ease-in-out;
       }
 
-      #overlay.visible {
+      #fast-bookmark-overlay.visible {
         display: flex;
         opacity: 1;
       }
 
-      #modal {
+      #fast-bookmark-modal {
         width: 500px;
         max-width: 90vw;
         height: 100vh;
@@ -96,41 +96,41 @@
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
-      #overlay.visible #modal {
+      #fast-bookmark-overlay.visible #fast-bookmark-modal {
         transform: translateX(0);
       }
 
-      #sidebar-header {
+      #fast-bookmark-sidebar-header {
         padding: 20px 24px;
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
 
-      #sidebar-title {
+      #fast-bookmark-sidebar-title {
         font-size: 24px;
         font-weight: 600;
         color: var(--text-color);
         margin: 0;
       }
 
-      #settings-btn {
+      #fast-bookmark-settings-btn {
         cursor: pointer;
         color: var(--secondary-text);
-        display: none;
+        display: flex;
         align-items: center;
         transition: color 0.2s;
       }
 
-      #settings-btn:hover {
+      #fast-bookmark-settings-btn:hover {
         color: var(--primary-color);
       }
 
-      #search-container {
+      #fast-bookmark-search-container {
         padding: 0 24px 16px 24px;
       }
 
-      #search-input-wrapper {
+      #fast-bookmark-search-input-wrapper {
         display: flex;
         align-items: center;
         background: var(--hover-bg);
@@ -140,12 +140,12 @@
         transition: border-color 0.2s;
       }
 
-      #search-input-wrapper:focus-within {
+      #fast-bookmark-search-input-wrapper:focus-within {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 2px rgba(55, 48, 163, 0.1);
       }
 
-      #search-input {
+      #fast-bookmark-search-input {
         width: 100%;
         border: none;
         outline: none;
@@ -154,14 +154,14 @@
         background: transparent;
       }
 
-      #search-icon {
+      #fast-bookmark-search-icon {
         width: 16px;
         height: 16px;
         color: var(--secondary-text);
         margin-left: 8px;
       }
 
-      #results-list {
+      #fast-bookmark-results-list {
         flex: 1;
         overflow-y: auto;
         margin: 0;
@@ -169,20 +169,20 @@
         list-style: none;
       }
 
-      #results-list::-webkit-scrollbar {
+      #fast-bookmark-results-list::-webkit-scrollbar {
         width: 6px;
       }
 
-      #results-list::-webkit-scrollbar-track {
+      #fast-bookmark-results-list::-webkit-scrollbar-track {
         background: transparent;
       }
 
-      #results-list::-webkit-scrollbar-thumb {
+      #fast-bookmark-results-list::-webkit-scrollbar-thumb {
         background: var(--border-color);
         border-radius: 3px;
       }
 
-      #results-list::-webkit-scrollbar-thumb:hover {
+      #fast-bookmark-results-list::-webkit-scrollbar-thumb:hover {
         background: var(--secondary-text);
       }
 
@@ -307,7 +307,7 @@
         border-radius: 2px;
       }
 
-      #empty-state {
+      #fast-bookmark-empty-state {
         display: none;
         flex: 1;
         align-items: center;
@@ -319,25 +319,25 @@
         color: var(--secondary-text);
       }
 
-      #empty-state svg {
+      #fast-bookmark-empty-state svg {
         width: 48px;
         height: 48px;
         margin-bottom: 16px;
         opacity: 0.5;
       }
 
-      #empty-state .title {
+      #fast-bookmark-empty-state .title {
         font-size: 16px;
         font-weight: 600;
         color: var(--text-color);
         margin-bottom: 4px;
       }
 
-      #empty-state .desc {
+      #fast-bookmark-empty-state .desc {
         font-size: 14px;
       }
 
-      #footer {
+      #fast-bookmark-footer {
         padding: 8px 16px;
         background: var(--hover-bg);
         border-top: 1px solid var(--border-color);
@@ -369,29 +369,24 @@
 
   // HTML Structure
   const overlay = document.createElement('div');
-  overlay.id = 'overlay';
+  overlay.id = 'fast-bookmark-overlay';
   overlay.innerHTML = `
-    <div id="modal">
-      <div id="sidebar-header">
-        <h2 id="sidebar-title">${chrome.i18n.getMessage('extensionName')}</h2>
-        <div id="settings-btn" title="Settings">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </div>
+    <div id="fast-bookmark-modal">
+      <div id="fast-bookmark-sidebar-header">
+        <h2 id="fast-bookmark-sidebar-title">${chrome.i18n.getMessage('extensionName')}</h2>
+        <div id="fast-bookmark-settings-btn" title="Theme"></div>
       </div>
-      <div id="search-container">
-        <div id="search-input-wrapper">
-          <input type="text" id="search-input" placeholder="${chrome.i18n.getMessage('searchPlaceholder')}" autocomplete="off">
-          <svg id="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div id="fast-bookmark-search-container">
+        <div id="fast-bookmark-search-input-wrapper">
+          <input type="text" id="fast-bookmark-search-input" placeholder="${chrome.i18n.getMessage('searchPlaceholder')}" autocomplete="off">
+          <svg id="fast-bookmark-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
         </div>
       </div>
-      <ul id="results-list"></ul>
-      <div id="empty-state">
+      <ul id="fast-bookmark-results-list"></ul>
+      <div id="fast-bookmark-empty-state">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -403,21 +398,28 @@
   `;
   shadow.appendChild(overlay);
 
-  const searchInput = shadow.getElementById('search-input');
-  const resultsList = shadow.getElementById('results-list');
-  const emptyState = shadow.getElementById('empty-state');
-  const settingsBtn = shadow.getElementById('settings-btn');
+  const searchInput = shadow.getElementById('fast-bookmark-search-input');
+  const resultsList = shadow.getElementById('fast-bookmark-results-list');
+  const emptyState = shadow.getElementById('fast-bookmark-empty-state');
+  const settingsBtn = shadow.getElementById('fast-bookmark-settings-btn');
 
-  // Open settings page
+  function updateThemeToggleIcon() {
+    if (!settingsBtn) return;
+    const isDark = settings.theme === 'dark' || (settings.theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    settingsBtn.innerHTML = isDark
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"></path></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>';
+  }
   if (settingsBtn) {
     settingsBtn.addEventListener('click', () => {
-      try {
-        if (chrome.runtime && typeof chrome.runtime.openOptionsPage === 'function') {
-          chrome.runtime.openOptionsPage();
-          return;
-        }
-      } catch (e) {}
-      window.open(chrome.runtime.getURL('options.html'), '_blank');
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = settings.theme === 'dark' || (settings.theme === 'auto' && systemDark);
+      const nextTheme = isDark ? 'light' : 'dark';
+      chrome.storage.sync.set({ theme: nextTheme }, () => {
+        settings.theme = nextTheme;
+        updateStyles();
+        updateThemeToggleIcon();
+      });
     });
   }
 
@@ -428,6 +430,7 @@
       (items) => {
         settings = items;
         updateStyles();
+        updateThemeToggleIcon();
         if (callback) callback();
       }
     );
