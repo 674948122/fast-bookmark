@@ -449,6 +449,37 @@
     }
   }
 
+  function setFavicon(imgEl, pageUrl) {
+    function applyInline() {
+      const svg = document.createElement('svg');
+      svg.setAttribute('width', '16');
+      svg.setAttribute('height', '16');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('fill', 'currentColor');
+      svg.className = 'fast-bookmark-favicon';
+      svg.innerHTML = '<path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm7 1v4h4"/>';
+      imgEl.replaceWith(svg);
+    }
+    const extUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(pageUrl)}&size=32`;
+    imgEl.onerror = () => {
+      let u;
+      try {
+        u = new URL(pageUrl);
+      } catch (e) {
+        applyInline();
+        return;
+      }
+      if (u.protocol === 'http:' || u.protocol === 'https:') {
+        imgEl.onerror = () => {
+          applyInline();
+        };
+        imgEl.src = `https://www.google.com/s2/favicons?domain=${u.hostname}`;
+      } else {
+        applyInline();
+      }
+    };
+    imgEl.src = extUrl;
+  }
   // Fetch bookmarks
   function fetchBookmarks() {
     chrome.runtime.sendMessage({ action: "getBookmarks" }, (response) => {
@@ -515,11 +546,7 @@
 
       const favicon = document.createElement('img');
       favicon.className = 'fast-bookmark-favicon';
-      const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(node.url)}&size=32`;
-      favicon.src = faviconUrl;
-      favicon.onerror = () => {
-        favicon.src = `https://www.google.com/s2/favicons?domain=${new URL(node.url).hostname}`;
-      };
+      setFavicon(favicon, node.url);
       itemEl.appendChild(favicon);
     }
 
@@ -626,11 +653,7 @@
 
       const favicon = document.createElement('img');
       favicon.className = 'fast-bookmark-favicon';
-      const faviconUrl = `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(item.url)}&size=32`;
-      favicon.src = faviconUrl;
-      favicon.onerror = () => {
-        favicon.src = `https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}`;
-      };
+      setFavicon(favicon, item.url);
       itemEl.appendChild(favicon);
 
       const info = document.createElement('div');
