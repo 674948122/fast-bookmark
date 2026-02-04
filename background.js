@@ -6,7 +6,23 @@ chrome.action.onClicked.addListener(async (tab) => {
     return;
   }
 
+  // Request optional permissions before loading
+  const permissionsToRequest = {
+    permissions: ['bookmarks', 'favicon', 'chrome://favicon/']
+  };
+
   try {
+    const hasPermission = await chrome.permissions.contains(permissionsToRequest);
+    if (!hasPermission) {
+      const granted = await chrome.permissions.request(permissionsToRequest);
+      if (!granted) {
+        console.warn('Fast Bookmark: Permissions not granted.');
+        return;
+      }
+      // Permissions just granted, set up listeners
+      setupBookmarkListeners();
+    }
+
     // Try to send message first
     await chrome.tabs.sendMessage(tab.id, { action: "toggle" });
   } catch (error) {
@@ -41,6 +57,11 @@ chrome.action.onClicked.addListener(async (tab) => {
 let cachedData = null;
 
 function getBookmarkData(callback) {
+  if (!chrome.bookmarks) {
+    console.warn('Fast Bookmark: Bookmarks permission not granted.');
+    if (callback) callback({ tree: [], flattened: [] });
+    return;
+  }
   chrome.bookmarks.getTree((bookmarkTreeNodes) => {
     const flattenedBookmarks = [];
     const folderMap = new Map();
@@ -100,10 +121,21 @@ const invalidateCache = () => {
   });
 };
 
-chrome.bookmarks.onCreated.addListener(invalidateCache);
-chrome.bookmarks.onRemoved.addListener(invalidateCache);
-chrome.bookmarks.onChanged.addListener(invalidateCache);
-chrome.bookmarks.onMoved.addListener(invalidateCache);
+function setupBookmarkListeners() {
+  if (chrome.bookmarks && !chrome.bookmarks.onCreated.hasListener(invalidateCache)) {
+    chrome.bookmarks.onCreated.addListener(invalidateCache);
+    chrome.bookmarks.onRemoved.addListener(invalidateCache);
+    chrome.bookmarks.onChanged.addListener(invalidateCache);
+    chrome.bookmarks.onMoved.addListener(invalidateCache);
+  }
+}
+
+// Initial setup if permissions are already granted
+chrome.permissions.contains({ permissions: ['bookmarks'] }, (result) => {
+  if (result) {
+    setupBookmarkListeners();
+  }
+});
 
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

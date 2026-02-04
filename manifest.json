@@ -5,11 +5,14 @@
   "description": "__MSG_extensionDesc__",
   "default_locale": "en",
   "permissions": [
-    "bookmarks",
-    "favicon",
     "activeTab",
     "scripting",
     "storage"
+  ],
+  "optional_permissions": [
+    "bookmarks",
+    "favicon",
+    "chrome://favicon/"
   ],
   "background": {
     "service_worker": "background.js"
