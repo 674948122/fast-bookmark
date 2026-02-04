@@ -1,6 +1,10 @@
 (function () {
-    // Prevent multiple injections
-    if (document.getElementById("fast-bookmark-container")) {
+    // Check if running in launcher mode or new tab mode
+    const isLauncher = window.location.pathname.endsWith("launcher.html");
+    const isNewTab = window.location.pathname.endsWith("newtab.html");
+
+    // Prevent multiple injections (skip if already injected AND not in launcher/newtab mode - they are fresh pages)
+    if (document.getElementById("fast-bookmark-container") && !isLauncher && !isNewTab) {
         console.log(
             "Fast Bookmark: Already injected, skipping initialization.",
         );
@@ -1357,10 +1361,21 @@
                         "none",
                         "important",
                     );
+                    
+                    // If in launcher mode, close the tab when sidebar is hidden
+                    if (isLauncher) {
+                        window.close();
+                    }
                 }
             }, 200);
             container.classList.remove("fast-bookmark-searching");
         }
+    }
+
+    if (isLauncher || isNewTab) {
+        document.body.style.backgroundColor = isNewTab ? "" : "transparent"; // Ensure transparent background for launcher, default for newtab
+        // Auto-show in launcher/newtab mode
+        setTimeout(() => toggle(true), 100);
     }
 
     chrome.runtime.onMessage.addListener((request) => {

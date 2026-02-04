@@ -1,12 +1,15 @@
 // Listen for the extension icon click
 chrome.action.onClicked.addListener(async (tab) => {
-    // Ignore internal chrome pages
+    // Check for internal chrome pages or other restricted pages
     if (
         tab.url.startsWith("chrome://") ||
         tab.url.startsWith("edge://") ||
-        tab.url.startsWith("https://chrome.google.com/webstore")
+        tab.url.startsWith("https://chrome.google.com/webstore") ||
+        tab.url.startsWith("about:") ||
+        tab.url.startsWith("chrome-extension://")
     ) {
-        console.warn("Fast Bookmark: Cannot run on internal browser pages.");
+        console.log("Fast Bookmark: Restricted page detected, opening launcher tab.");
+        chrome.tabs.create({ url: chrome.runtime.getURL("launcher.html") });
         return;
     }
 
