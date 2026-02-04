@@ -1,14 +1,19 @@
 (function () {
-    // Check if running in launcher mode or new tab mode
+    // Check if running in launcher mode
     const isLauncher = window.location.pathname.endsWith("launcher.html");
-    const isNewTab = window.location.pathname.endsWith("newtab.html");
 
-    // Prevent multiple injections (skip if already injected AND not in launcher/newtab mode - they are fresh pages)
-    if (document.getElementById("fast-bookmark-container") && !isLauncher && !isNewTab) {
-        console.log(
-            "Fast Bookmark: Already injected, skipping initialization.",
-        );
+    // Check if script is already running in this context
+    if (window.hasFastBookmarkRunning) {
+        console.log("Fast Bookmark: Script already active in this context.");
         return;
+    }
+    window.hasFastBookmarkRunning = true;
+
+    // Check for "Zombie" DOM from previous context (e.g. after extension update/reload)
+    const existingContainer = document.getElementById("fast-bookmark-container");
+    if (existingContainer && !isLauncher) {
+        console.log("Fast Bookmark: Found orphan container, cleaning up...");
+        existingContainer.remove();
     }
 
     let isVisible = false;
@@ -1372,9 +1377,9 @@
         }
     }
 
-    if (isLauncher || isNewTab) {
-        document.body.style.backgroundColor = isNewTab ? "" : "transparent"; // Ensure transparent background for launcher, default for newtab
-        // Auto-show in launcher/newtab mode
+    if (isLauncher) {
+        document.body.style.backgroundColor = "transparent"; // Ensure transparent background for launcher
+        // Auto-show in launcher mode
         setTimeout(() => toggle(true), 100);
     }
 
