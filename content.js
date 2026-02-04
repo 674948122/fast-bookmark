@@ -25,6 +25,7 @@
         panelWidth: 400,
         highlightColorLight: "#3730a3",
         highlightColorDark: "#3730a3",
+        position: "right",
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
@@ -53,6 +54,8 @@
             settings.theme === "dark" ||
             (settings.theme === "auto" &&
                 window.matchMedia("(prefers-color-scheme: dark)").matches);
+        
+        container.setAttribute("position", settings.position || "right");
 
         style.textContent = `
       :host {
@@ -105,8 +108,21 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        transform: translateX(100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: absolute;
+        top: 0;
+      }
+      
+      :host([position="right"]) #fast-bookmark-modal {
+        right: 0;
+        left: auto;
+        transform: translateX(100%);
+      }
+
+      :host([position="left"]) #fast-bookmark-modal {
+        left: 0;
+        right: auto;
+        transform: translateX(-100%);
       }
 
       #fast-bookmark-overlay.visible #fast-bookmark-modal {
@@ -568,6 +584,19 @@
           </div>
         </div>
         <div class="settings-row">
+          <label class="settings-label">${chrome.i18n.getMessage("positionLabel")}</label>
+          <div style="display: flex; gap: 16px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+              <input type="radio" name="position" value="left" style="accent-color: var(--primary-color);">
+              ${chrome.i18n.getMessage("positionLeft")}
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+              <input type="radio" name="position" value="right" style="accent-color: var(--primary-color);">
+              ${chrome.i18n.getMessage("positionRight")}
+            </label>
+          </div>
+        </div>
+        <div class="settings-row">
           <label class="settings-label">${chrome.i18n.getMessage("highlightColorLightLabel")}</label>
           <div style="display: flex; align-items: center; gap: 12px;">
             <input type="color" id="highlight-color-light" value="${settings.highlightColorLight || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
@@ -645,6 +674,7 @@
     const widthValue = shadow.getElementById("panel-width-value");
     const colorLightInput = shadow.getElementById("highlight-color-light");
     const colorDarkInput = shadow.getElementById("highlight-color-dark");
+    const positionInputs = shadow.querySelectorAll('input[name="position"]');
     const saveBtn = shadow.getElementById("settings-save");
     const cancelBtn = shadow.getElementById("settings-cancel");
     
@@ -704,6 +734,10 @@
             widthValue.textContent = (settings.panelWidth || 400) + "px";
             if (colorLightInput) colorLightInput.value = settings.highlightColorLight || "#3730a3";
             if (colorDarkInput) colorDarkInput.value = settings.highlightColorDark || "#3730a3";
+            
+            positionInputs.forEach(input => {
+                input.checked = input.value === (settings.position || "right");
+            });
         });
     }
 
@@ -727,12 +761,20 @@
             settings.panelWidth = parseInt(widthSlider.value);
             settings.highlightColorLight = colorLightInput ? colorLightInput.value : "#3730a3";
             settings.highlightColorDark = colorDarkInput ? colorDarkInput.value : "#3730a3";
+            
+            let selectedPosition = "right";
+            positionInputs.forEach(input => {
+                if (input.checked) selectedPosition = input.value;
+            });
+            settings.position = selectedPosition;
+
             chrome.storage.sync.set(
                 {
                     shortcut: tempShortcut,
                     panelWidth: settings.panelWidth,
                     highlightColorLight: settings.highlightColorLight,
                     highlightColorDark: settings.highlightColorDark,
+                    position: settings.position,
                 },
                 () => {
                     settingsModal.style.display = "none";
@@ -868,6 +910,7 @@
                 panelWidth: 400,
                 highlightColorLight: "#3730a3",
                 highlightColorDark: "#3730a3",
+                position: "right",
             },
             (items) => {
                 settings = items;
@@ -1261,6 +1304,16 @@
                     "2147483647",
                     "important",
                 );
+                
+                // Set initial position based on settings
+                if (settings.position === "left") {
+                    container.style.setProperty("left", "0", "important");
+                    container.style.setProperty("right", "auto", "important");
+                } else {
+                    container.style.setProperty("right", "0", "important");
+                    container.style.setProperty("left", "auto", "important");
+                }
+
                 overlay.style.display = "flex";
                 overlay.offsetHeight;
                 overlay.classList.add("visible");

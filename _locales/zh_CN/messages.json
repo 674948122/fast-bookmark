@@ -94,5 +94,14 @@
   },
   "deleteButton": {
     "message": "删除"
+  },
+  "positionLabel": {
+    "message": "侧栏位置"
+  },
+  "positionLeft": {
+    "message": "左侧"
+  },
+  "positionRight": {
+    "message": "右侧"
   }
 }

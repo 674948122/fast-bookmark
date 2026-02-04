@@ -94,5 +94,14 @@
   },
   "deleteButton": {
     "message": "Delete"
+  },
+  "positionLabel": {
+    "message": "Sidebar Position"
+  },
+  "positionLeft": {
+    "message": "Left"
+  },
+  "positionRight": {
+    "message": "Right"
   }
 }
