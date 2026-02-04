@@ -53,6 +53,18 @@
   "saveButton": {
     "message": "保存设置"
   },
+  "shortcutLabel": {
+    "message": "切换快捷键"
+  },
+  "shortcutHint": {
+    "message": "点击录制快捷键"
+  },
+  "shortcutRecording": {
+    "message": "正在录制... 请按下按键"
+  },
+  "panelWidthLabel": {
+    "message": "面板宽度"
+  },
   "savedMessage": {
     "message": "设置已保存！"
   }

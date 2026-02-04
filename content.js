@@ -14,11 +14,14 @@
     let fuse = null;
     let selectedIndex = -1;
     let results = [];
+    const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
     let settings = {
         theme: "auto",
         threshold: 0.4,
         showPath: true,
         showRecent: true,
+        shortcut: isMac ? "meta+b" : "ctrl+b",
+        panelWidth: 400,
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
@@ -59,6 +62,7 @@
         --selected-bg: ${isDark ? "#312e81" : "#e0e7ff"};
         --shadow: ${isDark ? "-10px 0 25px -5px rgba(0, 0, 0, 0.6)" : "-10px 0 25px -5px rgba(0, 0, 0, 0.1)"};
         --accent-color: var(--primary-color);
+        --panel-width: ${settings.panelWidth || 400}px;
         text-align: initial;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
         line-height: 1.4;
@@ -94,7 +98,7 @@
       }
 
       #fast-bookmark-modal {
-        width: 500px;
+        width: var(--panel-width);
         max-width: 90vw;
         height: 100vh;
         background: var(--bg-color);
@@ -117,6 +121,12 @@
         align-items: center;
       }
 
+      #fast-bookmark-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
       #fast-bookmark-sidebar-title {
         font-size: 24px;
         font-weight: 600;
@@ -124,16 +134,103 @@
         margin: 0;
       }
 
-      #fast-bookmark-settings-btn {
+      .fast-bookmark-icon-btn {
         cursor: pointer;
         color: var(--secondary-text);
         display: flex;
         align-items: center;
         transition: color 0.2s;
+        padding: 4px;
+        border-radius: 4px;
       }
 
-      #fast-bookmark-settings-btn:hover {
+      .fast-bookmark-icon-btn:hover {
         color: var(--primary-color);
+        background: var(--hover-bg);
+      }
+
+      #fast-bookmark-settings-modal {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--bg-color);
+        z-index: 100;
+        display: none;
+        flex-direction: column;
+        padding: 24px;
+        animation: slideIn 0.2s ease-out;
+      }
+
+      @keyframes slideIn {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .settings-row {
+        margin-bottom: 24px;
+      }
+
+      .settings-label {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text-color);
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      #shortcut-input {
+        width: 100%;
+        padding: 12px;
+        background: var(--hover-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-family: monospace;
+        font-size: 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      #shortcut-input:hover {
+        border-color: var(--primary-color);
+      }
+
+      #shortcut-input.recording {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+        color: var(--accent-color);
+      }
+
+      .settings-actions {
+        margin-top: auto;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid var(--border-color);
+        background: var(--bg-color);
+        color: var(--text-color);
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
       }
 
       #fast-bookmark-search-container {
@@ -384,7 +481,33 @@
     <div id="fast-bookmark-modal">
       <div id="fast-bookmark-sidebar-header">
         <h2 id="fast-bookmark-sidebar-title">${chrome.i18n.getMessage("extensionName")}</h2>
-        <div id="fast-bookmark-settings-btn" title="Theme"></div>
+        <div id="fast-bookmark-header-actions">
+          <div id="fast-bookmark-theme-btn" class="fast-bookmark-icon-btn" title="Theme"></div>
+          <div id="fast-bookmark-config-btn" class="fast-bookmark-icon-btn" title="Settings">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div id="fast-bookmark-settings-modal">
+        <h2 style="margin: 0 0 24px 0; color: var(--text-color);">${chrome.i18n.getMessage("settingsTitle")}</h2>
+        <div class="settings-row">
+          <label class="settings-label">${chrome.i18n.getMessage("shortcutLabel")}</label>
+          <div id="shortcut-input" tabindex="0">${settings.shortcut}</div>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label">${chrome.i18n.getMessage("panelWidthLabel")}</label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="range" id="panel-width-slider" min="300" max="800" step="10" value="${settings.panelWidth || 400}" style="flex: 1; accent-color: var(--primary-color);">
+            <span id="panel-width-value" style="color: var(--text-color); font-size: 14px; min-width: 45px;">${settings.panelWidth || 400}px</span>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button id="settings-cancel" class="btn">${chrome.i18n.getMessage("closeHint")}</button>
+          <button id="settings-save" class="btn btn-primary">${chrome.i18n.getMessage("saveButton")}</button>
+        </div>
       </div>
       <div id="fast-bookmark-search-container">
         <div id="fast-bookmark-search-input-wrapper">
@@ -411,20 +534,31 @@
     const searchInput = shadow.getElementById("fast-bookmark-search-input");
     const resultsList = shadow.getElementById("fast-bookmark-results-list");
     const emptyState = shadow.getElementById("fast-bookmark-empty-state");
-    const settingsBtn = shadow.getElementById("fast-bookmark-settings-btn");
+    const themeBtn = shadow.getElementById("fast-bookmark-theme-btn");
+    const configBtn = shadow.getElementById("fast-bookmark-config-btn");
+    const settingsModal = shadow.getElementById("fast-bookmark-settings-modal");
+    const shortcutInput = shadow.getElementById("shortcut-input");
+    const widthSlider = shadow.getElementById("panel-width-slider");
+    const widthValue = shadow.getElementById("panel-width-value");
+    const saveBtn = shadow.getElementById("settings-save");
+    const cancelBtn = shadow.getElementById("settings-cancel");
+
+    let isRecording = false;
+    let tempShortcut = "";
 
     function updateThemeToggleIcon() {
-        if (!settingsBtn) return;
+        if (!themeBtn) return;
         const isDark =
             settings.theme === "dark" ||
             (settings.theme === "auto" &&
                 window.matchMedia("(prefers-color-scheme: dark)").matches);
-        settingsBtn.innerHTML = isDark
+        themeBtn.innerHTML = isDark
             ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"></path></svg>'
             : '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path></svg>';
     }
-    if (settingsBtn) {
-        settingsBtn.addEventListener("click", () => {
+
+    if (themeBtn) {
+        themeBtn.addEventListener("click", () => {
             const systemDark = window.matchMedia(
                 "(prefers-color-scheme: dark)",
             ).matches;
@@ -440,10 +574,94 @@
         });
     }
 
+    // Settings Modal Logic
+    if (configBtn) {
+        configBtn.addEventListener("click", () => {
+            settingsModal.style.display = "flex";
+            shortcutInput.textContent = settings.shortcut;
+            tempShortcut = settings.shortcut;
+            widthSlider.value = settings.panelWidth || 400;
+            widthValue.textContent = (settings.panelWidth || 400) + "px";
+        });
+    }
+
+    if (widthSlider) {
+        widthSlider.addEventListener("input", (e) => {
+            widthValue.textContent = e.target.value + "px";
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener("click", () => {
+            settingsModal.style.display = "none";
+            isRecording = false;
+            shortcutInput.classList.remove("recording");
+        });
+    }
+
+    if (saveBtn) {
+        saveBtn.addEventListener("click", () => {
+            settings.shortcut = tempShortcut;
+            settings.panelWidth = parseInt(widthSlider.value);
+            chrome.storage.sync.set(
+                {
+                    shortcut: tempShortcut,
+                    panelWidth: settings.panelWidth,
+                },
+                () => {
+                    settingsModal.style.display = "none";
+                    updateStyles();
+                },
+            );
+        });
+    }
+
+    if (shortcutInput) {
+        shortcutInput.addEventListener("click", () => {
+            isRecording = true;
+            shortcutInput.classList.add("recording");
+            shortcutInput.textContent = chrome.i18n.getMessage("shortcutRecording");
+        });
+
+        shortcutInput.addEventListener("keydown", (e) => {
+            if (!isRecording) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            const keys = [];
+            if (e.metaKey) keys.push("Meta");
+            if (e.ctrlKey) keys.push("Ctrl");
+            if (e.altKey) keys.push("Alt");
+            if (e.shiftKey) keys.push("Shift");
+
+            // Ignore modifier keys themselves
+            if (
+                ["Meta", "Control", "Alt", "Shift"].includes(e.key)
+            )
+                return;
+
+            const key = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+            keys.push(key);
+
+            tempShortcut = keys.join("+").toLowerCase();
+            shortcutInput.textContent = keys.join("+");
+            
+            isRecording = false;
+            shortcutInput.classList.remove("recording");
+        });
+    }
+
     // Load settings
     function loadSettings(callback) {
         chrome.storage.sync.get(
-            { theme: "auto", threshold: 0.4, showPath: true, showRecent: true },
+            {
+                theme: "auto",
+                threshold: 0.4,
+                showPath: true,
+                showRecent: true,
+                shortcut: isMac ? "meta+b" : "ctrl+b",
+                panelWidth: 400,
+            },
             (items) => {
                 settings = items;
                 updateStyles();
@@ -852,7 +1070,6 @@
     });
 
     searchInput.addEventListener("keydown", (e) => {
-        e.stopPropagation();
         if (e.isComposing) return;
 
         const displayResults =
@@ -882,11 +1099,9 @@
     });
 
     searchInput.addEventListener("keypress", (e) => {
-        e.stopPropagation();
     });
 
     searchInput.addEventListener("keyup", (e) => {
-        e.stopPropagation();
     });
 
     overlay.addEventListener("click", (e) => {
@@ -912,4 +1127,28 @@
 
     loadSettings();
     fetchBookmarks();
+
+    // Global shortcut listener
+    window.addEventListener("keydown", (e) => {
+        if (!settings.shortcut) return;
+
+        const keys = settings.shortcut.split("+");
+        const mainKey = keys.pop().toLowerCase();
+        
+        const ctrlRequired = keys.includes("ctrl");
+        const altRequired = keys.includes("alt");
+        const shiftRequired = keys.includes("shift");
+        const metaRequired = keys.includes("meta");
+
+        if (
+            e.key.toLowerCase() === mainKey &&
+            e.ctrlKey === ctrlRequired &&
+            e.altKey === altRequired &&
+            e.shiftKey === shiftRequired &&
+            e.metaKey === metaRequired
+        ) {
+            e.preventDefault();
+            toggle();
+        }
+    });
 })();

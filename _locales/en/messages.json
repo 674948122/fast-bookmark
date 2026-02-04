@@ -53,6 +53,18 @@
   "saveButton": {
     "message": "Save Settings"
   },
+  "shortcutLabel": {
+    "message": "Toggle Shortcut"
+  },
+  "shortcutHint": {
+    "message": "Click to record shortcut"
+  },
+  "shortcutRecording": {
+    "message": "Recording... Press keys"
+  },
+  "panelWidthLabel": {
+    "message": "Panel Width"
+  },
   "savedMessage": {
     "message": "Settings saved!"
   }
