@@ -65,14 +65,11 @@
   "panelWidthLabel": {
     "message": "面板宽度"
   },
-  "openModeLabel": {
-    "message": "网页打开方式"
+  "highlightColorLightLabel": {
+    "message": "高亮色（明亮模式）"
   },
-  "openInNewTab": {
-    "message": "在新网页打开"
-  },
-  "openInCurrentTab": {
-    "message": "在当前网页打开"
+  "highlightColorDarkLabel": {
+    "message": "高亮色（暗黑模式）"
   },
   "savedMessage": {
     "message": "设置已保存！"

@@ -65,14 +65,11 @@
   "panelWidthLabel": {
     "message": "Panel Width"
   },
-  "openModeLabel": {
-    "message": "Open Bookmark In"
+  "highlightColorLightLabel": {
+    "message": "Highlight Color (Light)"
   },
-  "openInNewTab": {
-    "message": "New Tab"
-  },
-  "openInCurrentTab": {
-    "message": "Current Tab"
+  "highlightColorDarkLabel": {
+    "message": "Highlight Color (Dark)"
   },
   "savedMessage": {
     "message": "Settings saved!"

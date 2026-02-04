@@ -22,7 +22,8 @@
         showRecent: true,
         shortcut: isMac ? "meta+b" : "ctrl+b",
         panelWidth: 400,
-        openInNewTab: true,
+        highlightColorLight: "#3730a3",
+        highlightColorDark: "#3730a3",
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
@@ -54,23 +55,19 @@
 
         style.textContent = `
       :host {
-        --primary-color: #3730a3; /* Darker Indigo for better contrast */
+        --primary-color: ${isDark ? (settings.highlightColorDark || "#3730a3") : (settings.highlightColorLight || "#3730a3")}; /* Customizable highlight color */
         --bg-color: ${isDark ? "#111827" : "#ffffff"};
         --text-color: ${isDark ? "#f3f4f6" : "#111827"};
         --secondary-text: ${isDark ? "#9ca3af" : "#4b5563"}; /* Increased contrast */
         --border-color: ${isDark ? "#374151" : "#e5e7eb"};
-        --hover-bg: ${isDark ? "#1f2937" : "#f3f4f6"};
-        --selected-bg: ${isDark ? "#312e81" : "#e0e7ff"};
+        --hover-bg: color-mix(in srgb, var(--primary-color) ${isDark ? "15%" : "10%"}, var(--bg-color));
+        --selected-bg: color-mix(in srgb, var(--primary-color) ${isDark ? "25%" : "15%"}, var(--bg-color));
         --shadow: ${isDark ? "-10px 0 25px -5px rgba(0, 0, 0, 0.6)" : "-10px 0 25px -5px rgba(0, 0, 0, 0.1)"};
         --accent-color: var(--primary-color);
         --panel-width: ${settings.panelWidth || 400}px;
         text-align: initial;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
         line-height: 1.4;
-      }
-      
-      :host(.fast-bookmark-searching) {
-        --accent-color: ${isDark ? "#f59e0b" : "#6d28d9"};
       }
       
       :host *, :host *::before, :host *::after {
@@ -342,7 +339,7 @@
       }
 
       .fast-bookmark-folder-icon {
-        color: #f59e0b; /* Slightly warmer amber */
+        color: var(--accent-color);
         display: flex;
       }
 
@@ -410,7 +407,7 @@
       .fast-bookmark-highlight {
         color: var(--accent-color);
         font-weight: 700;
-        background: ${isDark ? "rgba(245, 158, 11, 0.15)" : "rgba(245, 158, 11, 0.12)"};
+        background: color-mix(in srgb, var(--accent-color) ${isDark ? "15%" : "12%"}, transparent);
         padding: 0 1px;
         border-radius: 2px;
       }
@@ -506,11 +503,16 @@
           </div>
         </div>
         <div class="settings-row">
-          <label class="settings-label">${chrome.i18n.getMessage("openModeLabel")}</label>
-          <select id="open-mode-select" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
-            <option value="newTab">${chrome.i18n.getMessage("openInNewTab")}</option>
-            <option value="currentTab">${chrome.i18n.getMessage("openInCurrentTab")}</option>
-          </select>
+          <label class="settings-label">${chrome.i18n.getMessage("highlightColorLightLabel")}</label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="color" id="highlight-color-light" value="${settings.highlightColorLight || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
+          </div>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label">${chrome.i18n.getMessage("highlightColorDarkLabel")}</label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="color" id="highlight-color-dark" value="${settings.highlightColorDark || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
+          </div>
         </div>
         <div class="settings-actions">
           <button id="settings-cancel" class="btn">${chrome.i18n.getMessage("closeHint")}</button>
@@ -548,7 +550,8 @@
     const shortcutInput = shadow.getElementById("shortcut-input");
     const widthSlider = shadow.getElementById("panel-width-slider");
     const widthValue = shadow.getElementById("panel-width-value");
-    const openModeSelect = shadow.getElementById("open-mode-select");
+    const colorLightInput = shadow.getElementById("highlight-color-light");
+    const colorDarkInput = shadow.getElementById("highlight-color-dark");
     const saveBtn = shadow.getElementById("settings-save");
     const cancelBtn = shadow.getElementById("settings-cancel");
 
@@ -591,9 +594,8 @@
             tempShortcut = settings.shortcut;
             widthSlider.value = settings.panelWidth || 400;
             widthValue.textContent = (settings.panelWidth || 400) + "px";
-            if (openModeSelect) {
-                openModeSelect.value = settings.openInNewTab ? "newTab" : "currentTab";
-            }
+            if (colorLightInput) colorLightInput.value = settings.highlightColorLight || "#3730a3";
+            if (colorDarkInput) colorDarkInput.value = settings.highlightColorDark || "#3730a3";
         });
     }
 
@@ -615,12 +617,14 @@
         saveBtn.addEventListener("click", () => {
             settings.shortcut = tempShortcut;
             settings.panelWidth = parseInt(widthSlider.value);
-            settings.openInNewTab = openModeSelect ? openModeSelect.value === "newTab" : true;
+            settings.highlightColorLight = colorLightInput ? colorLightInput.value : "#3730a3";
+            settings.highlightColorDark = colorDarkInput ? colorDarkInput.value : "#3730a3";
             chrome.storage.sync.set(
                 {
                     shortcut: tempShortcut,
                     panelWidth: settings.panelWidth,
-                    openInNewTab: settings.openInNewTab,
+                    highlightColorLight: settings.highlightColorLight,
+                    highlightColorDark: settings.highlightColorDark,
                 },
                 () => {
                     settingsModal.style.display = "none";
@@ -675,7 +679,8 @@
                 showRecent: true,
                 shortcut: isMac ? "meta+b" : "ctrl+b",
                 panelWidth: 400,
-                openInNewTab: true,
+                highlightColorLight: "#3730a3",
+                highlightColorDark: "#3730a3",
             },
             (items) => {
                 settings = items;
@@ -980,7 +985,12 @@
     }
 
     function openBookmark(bookmark, forceNewTab = false) {
-        const newTab = forceNewTab || settings.openInNewTab;
+        // Always open in new tab by default (true), unless forceNewTab is explicitly true (Ctrl/Cmd click)
+        // Wait, the logic should be: if Ctrl/Cmd click (forceNewTab=true), open in new tab.
+        // If normal click (forceNewTab=false), ALSO open in new tab because that's the default behavior.
+        // So actually, we just want newTab to be true always.
+        // But to support potential future changes or if forceNewTab means "force", let's just use true.
+        const newTab = true; 
         chrome.runtime.sendMessage({
             action: "openBookmark",
             url: bookmark.url,
