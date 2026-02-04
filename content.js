@@ -483,6 +483,7 @@
         }
 
         // Defensive check: if runtime context is lost, chrome.runtime will be undefined
+        // or if id is missing, the URL will be invalid (chrome-extension://undefined/...)
         if (!chrome.runtime || !chrome.runtime.id) {
             applyInline();
             return;
@@ -499,6 +500,7 @@
                 return;
             }
 
+            // Only attempt fallbacks for http/https URLs
             if (u.protocol === "http:" || u.protocol === "https:") {
                 // First fallback: Try loading directly from the site's root
                 const rootFavicon = `${u.origin}/favicon.ico`;
@@ -508,13 +510,15 @@
                     imgEl.onerror = () => {
                         applyInline();
                     };
-                    imgEl.src = `https://www.google.com/s2/favicons?domain=${u.hostname}`;
+                    imgEl.src = `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=32`;
                 };
                 imgEl.src = rootFavicon;
             } else {
+                // For chrome:// or other internal pages, we use the inline SVG
                 applyInline();
             }
         };
+
         imgEl.src = extUrl;
     }
     // Fetch bookmarks

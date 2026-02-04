@@ -7,21 +7,36 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
-  ],
-  "optional_permissions": [
+    "storage",
     "bookmarks",
-    "favicon",
-    "chrome://favicon/"
+    "favicon"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "_favicon/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "extension_ids": []
+    }
   ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["lib/fuse.basic.min.js", "content.js"],
-      "css": ["styles.css"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "lib/fuse.basic.min.js",
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ]
     }
   ],
   "action": {

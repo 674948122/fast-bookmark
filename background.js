@@ -8,7 +8,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 
   // Request optional permissions before loading
   const permissionsToRequest = {
-    permissions: ['bookmarks', 'favicon', 'chrome://favicon/']
+    permissions: ['bookmarks', 'favicon']
   };
 
   try {
@@ -63,6 +63,7 @@ function getBookmarkData(callback) {
     return;
   }
   chrome.bookmarks.getTree((bookmarkTreeNodes) => {
+
     const flattenedBookmarks = [];
     const folderMap = new Map();
     
@@ -131,7 +132,7 @@ function setupBookmarkListeners() {
 }
 
 // Initial setup if permissions are already granted
-chrome.permissions.contains({ permissions: ['bookmarks'] }, (result) => {
+chrome.permissions.contains({ permissions: ['bookmarks','favicon'] }, (result) => {
   if (result) {
     setupBookmarkListeners();
   }
