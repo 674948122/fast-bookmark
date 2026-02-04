@@ -65,6 +65,15 @@
   "panelWidthLabel": {
     "message": "面板宽度"
   },
+  "openModeLabel": {
+    "message": "网页打开方式"
+  },
+  "openInNewTab": {
+    "message": "在新网页打开"
+  },
+  "openInCurrentTab": {
+    "message": "在当前网页打开"
+  },
   "savedMessage": {
     "message": "设置已保存！"
   }

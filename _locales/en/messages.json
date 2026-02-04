@@ -65,6 +65,15 @@
   "panelWidthLabel": {
     "message": "Panel Width"
   },
+  "openModeLabel": {
+    "message": "Open Bookmark In"
+  },
+  "openInNewTab": {
+    "message": "New Tab"
+  },
+  "openInCurrentTab": {
+    "message": "Current Tab"
+  },
   "savedMessage": {
     "message": "Settings saved!"
   }

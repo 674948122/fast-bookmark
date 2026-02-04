@@ -22,6 +22,7 @@
         showRecent: true,
         shortcut: isMac ? "meta+b" : "ctrl+b",
         panelWidth: 400,
+        openInNewTab: true,
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
@@ -504,6 +505,13 @@
             <span id="panel-width-value" style="color: var(--text-color); font-size: 14px; min-width: 45px;">${settings.panelWidth || 400}px</span>
           </div>
         </div>
+        <div class="settings-row">
+          <label class="settings-label">${chrome.i18n.getMessage("openModeLabel")}</label>
+          <select id="open-mode-select" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color);">
+            <option value="newTab">${chrome.i18n.getMessage("openInNewTab")}</option>
+            <option value="currentTab">${chrome.i18n.getMessage("openInCurrentTab")}</option>
+          </select>
+        </div>
         <div class="settings-actions">
           <button id="settings-cancel" class="btn">${chrome.i18n.getMessage("closeHint")}</button>
           <button id="settings-save" class="btn btn-primary">${chrome.i18n.getMessage("saveButton")}</button>
@@ -540,6 +548,7 @@
     const shortcutInput = shadow.getElementById("shortcut-input");
     const widthSlider = shadow.getElementById("panel-width-slider");
     const widthValue = shadow.getElementById("panel-width-value");
+    const openModeSelect = shadow.getElementById("open-mode-select");
     const saveBtn = shadow.getElementById("settings-save");
     const cancelBtn = shadow.getElementById("settings-cancel");
 
@@ -582,6 +591,9 @@
             tempShortcut = settings.shortcut;
             widthSlider.value = settings.panelWidth || 400;
             widthValue.textContent = (settings.panelWidth || 400) + "px";
+            if (openModeSelect) {
+                openModeSelect.value = settings.openInNewTab ? "newTab" : "currentTab";
+            }
         });
     }
 
@@ -603,10 +615,12 @@
         saveBtn.addEventListener("click", () => {
             settings.shortcut = tempShortcut;
             settings.panelWidth = parseInt(widthSlider.value);
+            settings.openInNewTab = openModeSelect ? openModeSelect.value === "newTab" : true;
             chrome.storage.sync.set(
                 {
                     shortcut: tempShortcut,
                     panelWidth: settings.panelWidth,
+                    openInNewTab: settings.openInNewTab,
                 },
                 () => {
                     settingsModal.style.display = "none";
@@ -661,6 +675,7 @@
                 showRecent: true,
                 shortcut: isMac ? "meta+b" : "ctrl+b",
                 panelWidth: 400,
+                openInNewTab: true,
             },
             (items) => {
                 settings = items;
@@ -951,7 +966,7 @@
                     });
                 } else {
                     // Default to open in new tab for mouse click
-                    openBookmark(item, true);
+                    openBookmark(item, e.metaKey || e.ctrlKey);
                 }
             });
 
@@ -964,7 +979,8 @@
         });
     }
 
-    function openBookmark(bookmark, newTab = false) {
+    function openBookmark(bookmark, forceNewTab = false) {
+        const newTab = forceNewTab || settings.openInNewTab;
         chrome.runtime.sendMessage({
             action: "openBookmark",
             url: bookmark.url,
