@@ -80,12 +80,14 @@ function getBookmarkData(callback) {
     }
     chrome.bookmarks.getTree((bookmarkTreeNodes) => {
         const flattenedBookmarks = [];
+        const folders = [];
         const folderMap = new Map();
 
         function mapFolders(nodes) {
             nodes.forEach((node) => {
                 if (!node.url) {
                     folderMap.set(node.id, node.title);
+                    folders.push({ id: node.id, title: node.title });
                 }
                 if (node.children) {
                     mapFolders(node.children);
@@ -120,6 +122,7 @@ function getBookmarkData(callback) {
         cachedData = {
             tree: bookmarkTreeNodes,
             flattened: flattenedBookmarks,
+            folders: folders,
         };
 
         if (callback) callback(cachedData);
@@ -213,5 +216,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.action === "saveSidebarState") {
         chrome.storage.local.set({ sidebarState: request.state });
+    }
+
+    if (request.action === "deleteBookmark") {
+        if (request.isFolder) {
+            chrome.bookmarks.removeTree(request.id);
+        } else {
+            chrome.bookmarks.remove(request.id);
+        }
+        return true;
+    }
+
+    if (request.action === "updateBookmark") {
+        chrome.bookmarks.update(request.id, { title: request.title }, () => {
+            if (request.parentId && request.parentId !== request.oldParentId) {
+                chrome.bookmarks.move(request.id, { parentId: request.parentId });
+            }
+        });
+        return true;
     }
 });

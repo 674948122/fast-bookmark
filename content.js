@@ -9,6 +9,7 @@
 
     let isVisible = false;
     let bookmarks = [];
+    let folders = [];
     let bookmarkTree = [];
     let expandedFolders = new Set(["1", "2"]); // Default expand bar and other
     let fuse = null;
@@ -202,6 +203,22 @@
         color: var(--accent-color);
       }
 
+      .form-input, .form-select {
+        width: 100%;
+        padding: 8px 12px;
+        background: var(--hover-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-color);
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .form-input:focus, .form-select:focus {
+        border-color: var(--primary-color);
+      }
+
       .settings-actions {
         margin-top: auto;
         display: flex;
@@ -266,6 +283,19 @@
         margin-left: 8px;
       }
 
+      #fast-bookmark-clear-btn {
+        width: 16px;
+        height: 16px;
+        color: var(--secondary-text);
+        margin-left: 8px;
+        cursor: pointer;
+        display: none;
+      }
+
+      #fast-bookmark-clear-btn:hover {
+        color: var(--primary-color);
+      }
+
       #fast-bookmark-results-list {
         flex: 1;
         overflow-y: auto;
@@ -308,6 +338,41 @@
 
       .fast-bookmark-result-item:hover {
         background: var(--hover-bg);
+      }
+
+      .fast-bookmark-result-item:hover .fast-bookmark-actions {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .fast-bookmark-actions {
+        display: flex;
+        gap: 4px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        margin-left: auto;
+      }
+
+      .action-btn {
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--secondary-text);
+        transition: all 0.2s;
+      }
+
+      .action-btn:hover {
+        color: var(--primary-color);
+        background: rgba(0, 0, 0, 0.05);
+      }
+      
+      :host-context([theme="dark"]) .action-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
       }
 
       .fast-bookmark-result-item.fast-bookmark-selected {
@@ -519,9 +584,36 @@
           <button id="settings-save" class="btn btn-primary">${chrome.i18n.getMessage("saveButton")}</button>
         </div>
       </div>
+      <div id="fast-bookmark-edit-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100; flex-direction: column; padding: 24px; animation: slideIn 0.2s ease-out;">
+        <h2 style="margin: 0 0 24px 0; color: var(--text-color);">${chrome.i18n.getMessage("editBookmarkTitle")}</h2>
+        <div class="settings-row">
+          <label class="settings-label">${chrome.i18n.getMessage("nameLabel")}</label>
+          <input type="text" id="edit-name-input" class="form-input">
+        </div>
+        <div class="settings-row" id="edit-folder-row">
+          <label class="settings-label">${chrome.i18n.getMessage("folderLabel")}</label>
+          <select id="edit-folder-select" class="form-select"></select>
+        </div>
+        <div class="settings-actions">
+          <button id="edit-cancel" class="btn">${chrome.i18n.getMessage("cancelButton")}</button>
+          <button id="edit-save" class="btn btn-primary">${chrome.i18n.getMessage("saveButton")}</button>
+        </div>
+      </div>
+      <div id="fast-bookmark-delete-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100; flex-direction: column; padding: 24px; animation: slideIn 0.2s ease-out;">
+        <h2 style="margin: 0 0 24px 0; color: var(--text-color);">${chrome.i18n.getMessage("deleteBookmarkTitle")}</h2>
+        <p style="color: var(--text-color); margin-bottom: 24px;">${chrome.i18n.getMessage("deleteConfirmMessage")}</p>
+        <div class="settings-actions">
+          <button id="delete-cancel" class="btn">${chrome.i18n.getMessage("cancelButton")}</button>
+          <button id="delete-confirm" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;">${chrome.i18n.getMessage("deleteButton")}</button>
+        </div>
+      </div>
       <div id="fast-bookmark-search-container">
         <div id="fast-bookmark-search-input-wrapper">
           <input type="text" id="fast-bookmark-search-input" placeholder="${chrome.i18n.getMessage("searchPlaceholder")}" autocomplete="off">
+          <svg id="fast-bookmark-clear-btn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
           <svg id="fast-bookmark-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -542,6 +634,7 @@
     shadow.appendChild(overlay);
 
     const searchInput = shadow.getElementById("fast-bookmark-search-input");
+    const clearBtn = shadow.getElementById("fast-bookmark-clear-btn");
     const resultsList = shadow.getElementById("fast-bookmark-results-list");
     const emptyState = shadow.getElementById("fast-bookmark-empty-state");
     const themeBtn = shadow.getElementById("fast-bookmark-theme-btn");
@@ -554,8 +647,23 @@
     const colorDarkInput = shadow.getElementById("highlight-color-dark");
     const saveBtn = shadow.getElementById("settings-save");
     const cancelBtn = shadow.getElementById("settings-cancel");
+    
+    // Edit Modal Elements
+    const editModal = shadow.getElementById("fast-bookmark-edit-modal");
+    const editNameInput = shadow.getElementById("edit-name-input");
+    const editFolderSelect = shadow.getElementById("edit-folder-select");
+    const editFolderRow = shadow.getElementById("edit-folder-row");
+    const editCancelBtn = shadow.getElementById("edit-cancel");
+    const editSaveBtn = shadow.getElementById("edit-save");
+
+    // Delete Modal Elements
+    const deleteModal = shadow.getElementById("fast-bookmark-delete-modal");
+    const deleteCancelBtn = shadow.getElementById("delete-cancel");
+    const deleteConfirmBtn = shadow.getElementById("delete-confirm");
 
     let isRecording = false;
+    let currentEditItem = null;
+    let currentDeleteItem = null;
     let tempShortcut = "";
 
     function updateThemeToggleIcon() {
@@ -669,6 +777,85 @@
         });
     }
 
+    function openEditModal(item, isFolder) {
+        currentEditItem = item;
+        editModal.style.display = "flex";
+        editNameInput.value = item.title;
+        
+        if (isFolder) {
+            editFolderRow.style.display = "none";
+        } else {
+            editFolderRow.style.display = "block";
+            // Populate folders dropdown
+            editFolderSelect.innerHTML = "";
+            folders.forEach(folder => {
+                const option = document.createElement("option");
+                option.value = folder.id;
+                option.textContent = folder.title;
+                if (folder.id === item.parentId) {
+                    option.selected = true;
+                }
+                editFolderSelect.appendChild(option);
+            });
+        }
+        editNameInput.focus();
+    }
+
+    function openDeleteModal(item, isFolder) {
+        currentDeleteItem = { ...item, isFolder };
+        deleteModal.style.display = "flex";
+    }
+
+    // Modal Event Listeners
+    if (editCancelBtn) {
+        editCancelBtn.addEventListener("click", () => {
+            editModal.style.display = "none";
+            currentEditItem = null;
+        });
+    }
+
+    if (editSaveBtn) {
+        editSaveBtn.addEventListener("click", () => {
+            if (!currentEditItem) return;
+            
+            const newTitle = editNameInput.value;
+            const newParentId = editFolderSelect.value;
+            
+            chrome.runtime.sendMessage({
+                action: "updateBookmark",
+                id: currentEditItem.id,
+                title: newTitle,
+                parentId: currentEditItem.url ? newParentId : null, // Only move bookmarks, not folders for now (simpler)
+                oldParentId: currentEditItem.parentId
+            });
+            
+            editModal.style.display = "none";
+            currentEditItem = null;
+        });
+    }
+
+    if (deleteCancelBtn) {
+        deleteCancelBtn.addEventListener("click", () => {
+            deleteModal.style.display = "none";
+            currentDeleteItem = null;
+        });
+    }
+
+    if (deleteConfirmBtn) {
+        deleteConfirmBtn.addEventListener("click", () => {
+            if (!currentDeleteItem) return;
+            
+            chrome.runtime.sendMessage({
+                action: "deleteBookmark",
+                id: currentDeleteItem.id,
+                isFolder: currentDeleteItem.isFolder
+            });
+            
+            deleteModal.style.display = "none";
+            currentDeleteItem = null;
+        });
+    }
+
     // Load settings
     function loadSettings(callback) {
         chrome.storage.sync.get(
@@ -764,7 +951,9 @@
         chrome.runtime.sendMessage({ action: "getBookmarks" }, (response) => {
             bookmarks = response.flattened;
             bookmarkTree = response.tree;
+            folders = response.folders || [];
             initFuse();
+            renderResults(); // Ensure UI is updated with new data
         });
     }
 
@@ -846,6 +1035,29 @@
 
         info.innerHTML = `<span class="fast-bookmark-result-title">${title || "Untitled"}</span>`;
         itemEl.appendChild(info);
+
+        const actions = document.createElement("div");
+        actions.className = "fast-bookmark-actions";
+        
+        const editBtn = document.createElement("div");
+        editBtn.className = "action-btn";
+        editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+        editBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openEditModal(node, isFolder);
+        });
+        actions.appendChild(editBtn);
+
+        const deleteBtn = document.createElement("div");
+        deleteBtn.className = "action-btn";
+        deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+        deleteBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openDeleteModal(node, isFolder);
+        });
+        actions.appendChild(deleteBtn);
+
+        itemEl.appendChild(actions);
 
         itemEl.addEventListener("click", (e) => {
             if (isFolder) {
@@ -954,6 +1166,32 @@
       `;
             itemEl.appendChild(info);
 
+            const actions = document.createElement("div");
+            actions.className = "fast-bookmark-actions";
+            
+            const editBtn = document.createElement("div");
+            editBtn.className = "action-btn";
+            editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+            editBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                // Determine if it's a folder based on item properties
+                const isFolder = !item.url;
+                openEditModal(item, isFolder);
+            });
+            actions.appendChild(editBtn);
+
+            const deleteBtn = document.createElement("div");
+            deleteBtn.className = "action-btn";
+            deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+            deleteBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const isFolder = !item.url;
+                openDeleteModal(item, isFolder);
+            });
+            actions.appendChild(deleteBtn);
+
+            itemEl.appendChild(actions);
+
             itemEl.addEventListener("click", (e) => {
                 if (e.altKey) {
                     navigator.clipboard.writeText(item.url).then(() => {
@@ -1027,6 +1265,7 @@
                 overlay.offsetHeight;
                 overlay.classList.add("visible");
                 searchInput.value = "";
+                if (typeof updateClearBtn === "function") updateClearBtn();
                 results = [];
                 selectedIndex = 0;
                 chrome.runtime.sendMessage(
@@ -1079,6 +1318,14 @@
         }
     });
 
+    function updateClearBtn() {
+        if (searchInput.value) {
+            clearBtn.style.display = "block";
+        } else {
+            clearBtn.style.display = "none";
+        }
+    }
+
     searchInput.addEventListener("input", (e) => {
         e.stopPropagation();
         const query = e.target.value;
@@ -1093,7 +1340,20 @@
         }
         selectedIndex = 0;
         renderResults();
+        updateClearBtn();
     });
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+            searchInput.value = "";
+            searchInput.focus();
+            results = [];
+            container.classList.remove("fast-bookmark-searching");
+            selectedIndex = 0;
+            renderResults();
+            updateClearBtn();
+        });
+    }
 
     searchInput.addEventListener("keydown", (e) => {
         if (e.isComposing) return;

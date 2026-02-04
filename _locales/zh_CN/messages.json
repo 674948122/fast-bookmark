@@ -73,5 +73,26 @@
   },
   "savedMessage": {
     "message": "设置已保存！"
+  },
+  "editBookmarkTitle": {
+    "message": "编辑书签"
+  },
+  "deleteBookmarkTitle": {
+    "message": "删除书签"
+  },
+  "nameLabel": {
+    "message": "名称"
+  },
+  "folderLabel": {
+    "message": "文件夹"
+  },
+  "deleteConfirmMessage": {
+    "message": "确定要删除此书签吗？"
+  },
+  "cancelButton": {
+    "message": "取消"
+  },
+  "deleteButton": {
+    "message": "删除"
   }
 }

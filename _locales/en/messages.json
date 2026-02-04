@@ -73,5 +73,26 @@
   },
   "savedMessage": {
     "message": "Settings saved!"
+  },
+  "editBookmarkTitle": {
+    "message": "Edit Bookmark"
+  },
+  "deleteBookmarkTitle": {
+    "message": "Delete Bookmark"
+  },
+  "nameLabel": {
+    "message": "Name"
+  },
+  "folderLabel": {
+    "message": "Folder"
+  },
+  "deleteConfirmMessage": {
+    "message": "Are you sure you want to delete this bookmark?"
+  },
+  "cancelButton": {
+    "message": "Cancel"
+  },
+  "deleteButton": {
+    "message": "Delete"
   }
 }
