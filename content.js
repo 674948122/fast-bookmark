@@ -1612,7 +1612,8 @@
         if (!settings.shortcut) return;
 
         const keys = settings.shortcut.split("+");
-        const mainKey = keys.pop().toLowerCase();
+        const lastKey = keys.pop();
+        const mainKey = lastKey ? lastKey.toLowerCase() : "";
         
         const ctrlRequired = keys.includes("ctrl");
         const altRequired = keys.includes("alt");
@@ -1620,6 +1621,7 @@
         const metaRequired = keys.includes("meta");
 
         if (
+            e.key &&
             e.key.toLowerCase() === mainKey &&
             e.ctrlKey === ctrlRequired &&
             e.altKey === altRequired &&
