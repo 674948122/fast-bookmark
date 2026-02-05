@@ -103,5 +103,17 @@
   },
   "positionRight": {
     "message": "Right"
+  },
+  "languageLabel": {
+    "message": "Language"
+  },
+  "languageAuto": {
+    "message": "Auto (System)"
+  },
+  "languageEn": {
+    "message": "English"
+  },
+  "languageZh": {
+    "message": "Simplified Chinese"
   }
 }

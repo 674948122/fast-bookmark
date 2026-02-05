@@ -27,6 +27,7 @@
     const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
     let settings = {
         theme: "auto",
+        language: "auto",
         threshold: 0.4,
         showPath: true,
         showRecent: true,
@@ -38,6 +39,77 @@
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
+
+    // Translation Dictionary
+    const i18n = {
+        en: {
+            extensionName: "Fast Bookmark",
+            searchPlaceholder: "Search bookmarks...",
+            noMatches: "No matches found",
+            noMatchesDesc: "Try a different keyword or check your spelling.",
+            settingsTitle: "Fast Bookmark Settings",
+            shortcutLabel: "Toggle Shortcut",
+            shortcutRecording: "Recording... Press keys",
+            panelWidthLabel: "Panel Width",
+            highlightColorLightLabel: "Highlight Color (Light)",
+            highlightColorDarkLabel: "Highlight Color (Dark)",
+            closeHint: "Close",
+            saveButton: "Save Settings",
+            editBookmarkTitle: "Edit Bookmark",
+            deleteBookmarkTitle: "Delete Bookmark",
+            nameLabel: "Name",
+            folderLabel: "Folder",
+            deleteConfirmMessage: "Are you sure you want to delete this bookmark?",
+            cancelButton: "Cancel",
+            deleteButton: "Delete",
+            positionLabel: "Sidebar Position",
+            positionLeft: "Left",
+            positionRight: "Right",
+            languageLabel: "Language",
+            languageAuto: "Auto (System)",
+            languageEn: "English",
+            languageZh: "Simplified Chinese"
+        },
+        zh: {
+            extensionName: "悬浮书签",
+            searchPlaceholder: "搜索书签...",
+            noMatches: "未找到匹配项",
+            noMatchesDesc: "尝试其他关键词或检查拼写。",
+            settingsTitle: "悬浮书签设置",
+            shortcutLabel: "切换快捷键",
+            shortcutRecording: "正在录制... 请按下按键",
+            panelWidthLabel: "面板宽度",
+            highlightColorLightLabel: "高亮色（明亮模式）",
+            highlightColorDarkLabel: "高亮色（暗黑模式）",
+            closeHint: "关闭",
+            saveButton: "保存设置",
+            editBookmarkTitle: "编辑书签",
+            deleteBookmarkTitle: "删除书签",
+            nameLabel: "名称",
+            folderLabel: "文件夹",
+            deleteConfirmMessage: "确定要删除此书签吗？",
+            cancelButton: "取消",
+            deleteButton: "删除",
+            positionLabel: "侧栏位置",
+            positionLeft: "左侧",
+            positionRight: "右侧",
+            languageLabel: "语言",
+            languageAuto: "自动 (跟随系统)",
+            languageEn: "English",
+            languageZh: "简体中文"
+        }
+    };
+
+    function getMsg(key) {
+        let lang = settings.language;
+        if (lang === "auto") {
+            // Use chrome.i18n for auto
+            return chrome.i18n.getMessage(key);
+        }
+        // Map "zh-CN" from chrome to "zh" in our dict, but settings stores "en" or "zh"
+        // If settings.language is "zh", use i18n.zh
+        return i18n[lang] && i18n[lang][key] ? i18n[lang][key] : chrome.i18n.getMessage(key);
+    }
 
     // Create Shadow DOM container
     const container = document.createElement("div");
@@ -568,7 +640,7 @@
     overlay.innerHTML = `
     <div id="fast-bookmark-modal">
       <div id="fast-bookmark-sidebar-header">
-        <h2 id="fast-bookmark-sidebar-title">${chrome.i18n.getMessage("extensionName")}</h2>
+        <h2 id="fast-bookmark-sidebar-title" data-i18n="extensionName">${getMsg("extensionName")}</h2>
         <div id="fast-bookmark-header-actions">
           <div id="fast-bookmark-theme-btn" class="fast-bookmark-icon-btn" title="Theme"></div>
           <div id="fast-bookmark-config-btn" class="fast-bookmark-icon-btn" title="Settings">
@@ -580,74 +652,82 @@
         </div>
       </div>
       <div id="fast-bookmark-settings-modal">
-        <h2 style="margin: 0 0 24px 0; color: var(--text-color);">${chrome.i18n.getMessage("settingsTitle")}</h2>
+        <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="settingsTitle">${getMsg("settingsTitle")}</h2>
         <div class="settings-row">
-          <label class="settings-label">${chrome.i18n.getMessage("shortcutLabel")}</label>
+          <label class="settings-label" data-i18n="languageLabel">${getMsg("languageLabel")}</label>
+          <select id="language-select" class="form-select">
+            <option value="auto" data-i18n="languageAuto">${getMsg("languageAuto")}</option>
+            <option value="en" data-i18n="languageEn">${getMsg("languageEn")}</option>
+            <option value="zh" data-i18n="languageZh">${getMsg("languageZh")}</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" data-i18n="shortcutLabel">${getMsg("shortcutLabel")}</label>
           <div id="shortcut-input" tabindex="0">${settings.shortcut}</div>
         </div>
         <div class="settings-row">
-          <label class="settings-label">${chrome.i18n.getMessage("panelWidthLabel")}</label>
+          <label class="settings-label" data-i18n="panelWidthLabel">${getMsg("panelWidthLabel")}</label>
           <div style="display: flex; align-items: center; gap: 12px;">
             <input type="range" id="panel-width-slider" min="300" max="800" step="10" value="${settings.panelWidth || 400}" style="flex: 1; accent-color: var(--primary-color);">
             <span id="panel-width-value" style="color: var(--text-color); font-size: 14px; min-width: 45px;">${settings.panelWidth || 400}px</span>
           </div>
         </div>
         <div class="settings-row">
-          <label class="settings-label">${chrome.i18n.getMessage("positionLabel")}</label>
+          <label class="settings-label" data-i18n="positionLabel">${getMsg("positionLabel")}</label>
           <div style="display: flex; gap: 16px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
               <input type="radio" name="position" value="left" style="accent-color: var(--primary-color);">
-              ${chrome.i18n.getMessage("positionLeft")}
+              <span data-i18n="positionLeft">${getMsg("positionLeft")}</span>
             </label>
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
               <input type="radio" name="position" value="right" style="accent-color: var(--primary-color);">
-              ${chrome.i18n.getMessage("positionRight")}
+              <span data-i18n="positionRight">${getMsg("positionRight")}</span>
             </label>
           </div>
         </div>
         <div class="settings-row">
-          <label class="settings-label">${chrome.i18n.getMessage("highlightColorLightLabel")}</label>
+          <label class="settings-label" data-i18n="highlightColorLightLabel">${getMsg("highlightColorLightLabel")}</label>
           <div style="display: flex; align-items: center; gap: 12px;">
             <input type="color" id="highlight-color-light" value="${settings.highlightColorLight || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
           </div>
         </div>
         <div class="settings-row">
-          <label class="settings-label">${chrome.i18n.getMessage("highlightColorDarkLabel")}</label>
+          <label class="settings-label" data-i18n="highlightColorDarkLabel">${getMsg("highlightColorDarkLabel")}</label>
           <div style="display: flex; align-items: center; gap: 12px;">
             <input type="color" id="highlight-color-dark" value="${settings.highlightColorDark || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
           </div>
         </div>
         <div class="settings-actions">
-          <button id="settings-cancel" class="btn">${chrome.i18n.getMessage("closeHint")}</button>
-          <button id="settings-save" class="btn btn-primary">${chrome.i18n.getMessage("saveButton")}</button>
+          <button id="settings-cancel" class="btn" data-i18n="closeHint">${getMsg("closeHint")}</button>
+          <button id="settings-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
         </div>
       </div>
       <div id="fast-bookmark-edit-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100; flex-direction: column; padding: 24px; animation: slideIn 0.2s ease-out;">
-        <h2 style="margin: 0 0 24px 0; color: var(--text-color);">${chrome.i18n.getMessage("editBookmarkTitle")}</h2>
+        <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="editBookmarkTitle">${getMsg("editBookmarkTitle")}</h2>
         <div class="settings-row">
-          <label class="settings-label">${chrome.i18n.getMessage("nameLabel")}</label>
+          <label class="settings-label" data-i18n="nameLabel">${getMsg("nameLabel")}</label>
           <input type="text" id="edit-name-input" class="form-input">
         </div>
         <div class="settings-row" id="edit-folder-row">
-          <label class="settings-label">${chrome.i18n.getMessage("folderLabel")}</label>
+          <label class="settings-label" data-i18n="folderLabel">${getMsg("folderLabel")}</label>
           <select id="edit-folder-select" class="form-select"></select>
         </div>
         <div class="settings-actions">
-          <button id="edit-cancel" class="btn">${chrome.i18n.getMessage("cancelButton")}</button>
-          <button id="edit-save" class="btn btn-primary">${chrome.i18n.getMessage("saveButton")}</button>
+          <button id="edit-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
+          <button id="edit-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
         </div>
       </div>
       <div id="fast-bookmark-delete-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100; flex-direction: column; padding: 24px; animation: slideIn 0.2s ease-out;">
-        <h2 style="margin: 0 0 24px 0; color: var(--text-color);">${chrome.i18n.getMessage("deleteBookmarkTitle")}</h2>
-        <p style="color: var(--text-color); margin-bottom: 24px;">${chrome.i18n.getMessage("deleteConfirmMessage")}</p>
+        <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="deleteBookmarkTitle">${getMsg("deleteBookmarkTitle")}</h2>
+        <p style="color: var(--text-color); margin-bottom: 24px;" data-i18n="deleteConfirmMessage">${getMsg("deleteConfirmMessage")}</p>
         <div class="settings-actions">
-          <button id="delete-cancel" class="btn">${chrome.i18n.getMessage("cancelButton")}</button>
-          <button id="delete-confirm" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;">${chrome.i18n.getMessage("deleteButton")}</button>
+          <button id="delete-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
+          <button id="delete-confirm" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;" data-i18n="deleteButton">${getMsg("deleteButton")}</button>
         </div>
       </div>
       <div id="fast-bookmark-search-container">
         <div id="fast-bookmark-search-input-wrapper">
-          <input type="text" id="fast-bookmark-search-input" placeholder="${chrome.i18n.getMessage("searchPlaceholder")}" autocomplete="off">
+          <input type="text" id="fast-bookmark-search-input" placeholder="${getMsg("searchPlaceholder")}" autocomplete="off">
           <svg id="fast-bookmark-clear-btn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -664,8 +744,8 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <div class="title">${chrome.i18n.getMessage("noMatches")}</div>
-        <div class="desc">${chrome.i18n.getMessage("noMatchesDesc")}</div>
+        <div class="title" data-i18n="noMatches">${getMsg("noMatches")}</div>
+        <div class="desc" data-i18n="noMatchesDesc">${getMsg("noMatchesDesc")}</div>
       </div>
     </div>
   `;
@@ -678,6 +758,7 @@
     const themeBtn = shadow.getElementById("fast-bookmark-theme-btn");
     const configBtn = shadow.getElementById("fast-bookmark-config-btn");
     const settingsModal = shadow.getElementById("fast-bookmark-settings-modal");
+    const languageSelect = shadow.getElementById("language-select");
     const shortcutInput = shadow.getElementById("shortcut-input");
     const widthSlider = shadow.getElementById("panel-width-slider");
     const widthValue = shadow.getElementById("panel-width-value");
@@ -737,6 +818,7 @@
     if (configBtn) {
         configBtn.addEventListener("click", () => {
             settingsModal.style.display = "flex";
+            if (languageSelect) languageSelect.value = settings.language || "auto";
             shortcutInput.textContent = settings.shortcut;
             tempShortcut = settings.shortcut;
             widthSlider.value = settings.panelWidth || 400;
@@ -770,6 +852,7 @@
             settings.panelWidth = parseInt(widthSlider.value);
             settings.highlightColorLight = colorLightInput ? colorLightInput.value : "#3730a3";
             settings.highlightColorDark = colorDarkInput ? colorDarkInput.value : "#3730a3";
+            settings.language = languageSelect ? languageSelect.value : "auto";
             
             let selectedPosition = "right";
             positionInputs.forEach(input => {
@@ -784,12 +867,41 @@
                     highlightColorLight: settings.highlightColorLight,
                     highlightColorDark: settings.highlightColorDark,
                     position: settings.position,
+                    language: settings.language,
                 },
                 () => {
                     settingsModal.style.display = "none";
                     updateStyles();
+                    updateTexts();
                 },
             );
+        });
+    }
+
+    function updateTexts() {
+        const elements = shadow.querySelectorAll("[data-i18n]");
+        elements.forEach(el => {
+            const key = el.getAttribute("data-i18n");
+            if (key) {
+                el.textContent = getMsg(key);
+            }
+        });
+        
+        // Also update placeholders
+        if (searchInput) {
+            searchInput.placeholder = getMsg("searchPlaceholder");
+        }
+    }
+
+    if (languageSelect) {
+        languageSelect.addEventListener("change", (e) => {
+            // Temporary preview (not saved yet, but useful for user feedback)
+            // Actually, for better UX let's wait for save, but we could update UI to show it works
+            // But getMsg uses settings.language, so we need to temporarily set it or pass it
+            // Let's just keep it simple: settings are applied on Save. 
+            // BUT user expects to see the language change immediately? 
+            // Standard practice in simple extensions is apply on save.
+            // Let's stick to Apply on Save to avoid complex state management.
         });
     }
 
@@ -920,11 +1032,13 @@
                 highlightColorLight: "#3730a3",
                 highlightColorDark: "#3730a3",
                 position: "right",
+                language: "auto",
             },
             (items) => {
                 settings = items;
                 updateStyles();
                 updateThemeToggleIcon();
+                updateTexts(); // Apply translations
                 if (callback) callback();
             },
         );

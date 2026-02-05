@@ -1,3 +1,20 @@
+// Helper to send message with retry
+async function sendMessageWithRetry(tabId, message, maxRetries = 10, interval = 100) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            await chrome.tabs.sendMessage(tabId, message);
+            return; // Success
+        } catch (error) {
+            if (i === maxRetries - 1) {
+                console.error("Fast Bookmark: Failed to send message after retries:", error);
+                throw error;
+            }
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, interval));
+        }
+    }
+}
+
 // Listen for the extension icon click
 chrome.action.onClicked.addListener(async (tab) => {
     // Check for internal chrome pages or other restricted pages
@@ -53,16 +70,8 @@ chrome.action.onClicked.addListener(async (tab) => {
             });
 
             // Retry message after short delay to ensure script initialization
-            setTimeout(() => {
-                chrome.tabs
-                    .sendMessage(tab.id, { action: "toggle" })
-                    .catch((err) => {
-                        console.error(
-                            "Fast Bookmark: Failed to toggle after injection:",
-                            err,
-                        );
-                    });
-            }, 100);
+            // Use retry logic instead of single timeout
+            await sendMessageWithRetry(tab.id, { action: "toggle" });
         } catch (injectError) {
             console.error(
                 "Fast Bookmark: Failed to inject content script:",
