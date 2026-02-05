@@ -1119,6 +1119,12 @@
             bookmarkTree = response.tree;
             folders = response.folders || [];
             initFuse();
+
+            // Re-run search if there is a query to update results
+            if (searchInput.value && fuse) {
+                results = fuse.search(searchInput.value).slice(0, 20);
+            }
+
             renderResults(); // Ensure UI is updated with new data
         });
     }
