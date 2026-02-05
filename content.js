@@ -814,12 +814,22 @@
         });
     }
 
-    // Settings Modal Logic
+    // Helper to format shortcut for display
+    function formatShortcutForDisplay(shortcut) {
+        if (!shortcut) return "";
+        return shortcut.split("+").map(key => {
+            if (key.toLowerCase() === "meta") return isMac ? "Command" : "Win";
+            if (key.toLowerCase() === "ctrl") return "Ctrl";
+            if (key.length === 1) return key.toUpperCase();
+            return key.charAt(0).toUpperCase() + key.slice(1);
+        }).join("+");
+    }
+
     if (configBtn) {
         configBtn.addEventListener("click", () => {
             settingsModal.style.display = "flex";
             if (languageSelect) languageSelect.value = settings.language || "auto";
-            shortcutInput.textContent = settings.shortcut;
+            shortcutInput.textContent = formatShortcutForDisplay(settings.shortcut);
             tempShortcut = settings.shortcut;
             widthSlider.value = settings.panelWidth || 400;
             widthValue.textContent = (settings.panelWidth || 400) + "px";
@@ -918,10 +928,10 @@
             e.stopPropagation();
 
             const keys = [];
-            if (e.metaKey) keys.push("Meta");
-            if (e.ctrlKey) keys.push("Ctrl");
-            if (e.altKey) keys.push("Alt");
-            if (e.shiftKey) keys.push("Shift");
+            if (e.metaKey) keys.push("meta");
+            if (e.ctrlKey) keys.push("ctrl");
+            if (e.altKey) keys.push("alt");
+            if (e.shiftKey) keys.push("shift");
 
             // Ignore modifier keys themselves
             if (
@@ -929,11 +939,11 @@
             )
                 return;
 
-            const key = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+            const key = e.key.length === 1 ? e.key.toLowerCase() : e.key.toLowerCase();
             keys.push(key);
 
-            tempShortcut = keys.join("+").toLowerCase();
-            shortcutInput.textContent = keys.join("+");
+            tempShortcut = keys.join("+");
+            shortcutInput.textContent = formatShortcutForDisplay(tempShortcut);
             
             isRecording = false;
             shortcutInput.classList.remove("recording");
