@@ -73,6 +73,13 @@ chrome.action.onClicked.addListener(async (tab) => {
             // Use retry logic instead of single timeout
             await sendMessageWithRetry(tab.id, { action: "toggle" });
         } catch (injectError) {
+            // Handle cases where content script cannot be injected (e.g., error pages, restricted domains)
+            if (injectError.message && injectError.message.includes("Frame with ID 0 is showing error page")) {
+                console.warn("Fast Bookmark: Cannot inject into error page, opening launcher instead.");
+                chrome.tabs.create({ url: chrome.runtime.getURL("launcher.html") });
+                return;
+            }
+
             console.error(
                 "Fast Bookmark: Failed to inject content script:",
                 injectError,
