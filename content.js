@@ -1600,6 +1600,9 @@
             setTimeout(() => {
                 if (!isVisible) {
                     overlay.style.display = "none";
+                    settingsModal.style.display = "none";
+                    editModal.style.display = "none";
+                    deleteModal.style.display = "none";
                     container.style.setProperty("display", "none", "important");
                     container.style.setProperty(
                         "visibility",
