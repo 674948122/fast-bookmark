@@ -130,5 +130,14 @@
   },
   "languageZh": {
     "message": "简体中文"
+  },
+  "sortOrderLabel": {
+    "message": "排序规则"
+  },
+  "sortDefault": {
+    "message": "默认排序"
+  },
+  "sortFrequency": {
+    "message": "根据访问频率"
   }
 }

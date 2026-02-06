@@ -199,6 +199,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.action === "openBookmark") {
+        // Track visit count
+        if (request.id) {
+            chrome.storage.local.get(["bookmarkVisitCounts"], (result) => {
+                const counts = result.bookmarkVisitCounts || {};
+                counts[request.id] = (counts[request.id] || 0) + 1;
+                chrome.storage.local.set({ bookmarkVisitCounts: counts });
+            });
+        }
+
         // Save to recent
         chrome.storage.local.get(["recentBookmarks"], (result) => {
             let recent = result.recentBookmarks || [];

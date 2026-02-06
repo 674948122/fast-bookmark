@@ -130,5 +130,14 @@
   },
   "languageZh": {
     "message": "Simplified Chinese"
+  },
+  "sortOrderLabel": {
+    "message": "Sort Order"
+  },
+  "sortDefault": {
+    "message": "Default"
+  },
+  "sortFrequency": {
+    "message": "Most Visited"
   }
 }

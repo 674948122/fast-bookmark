@@ -36,6 +36,7 @@
         highlightColorLight: "#3730a3",
         highlightColorDark: "#3730a3",
         position: "right",
+        sortOrder: "default",
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
@@ -73,7 +74,10 @@
             wallpaperLabel: "Launcher Wallpaper",
             uploadButton: "Upload Image",
             clearButton: "Clear",
-            wallpaperSizeError: "Image too large (max 4MB)"
+            wallpaperSizeError: "Image too large (max 4MB)",
+            sortOrderLabel: "Sort Order",
+            sortDefault: "Default",
+            sortFrequency: "Most Visited"
         },
         zh: {
             extensionName: "悬浮书签",
@@ -106,7 +110,10 @@
             wallpaperLabel: "启动页壁纸",
             uploadButton: "上传图片",
             clearButton: "清除",
-            wallpaperSizeError: "图片过大 (最大 4MB)"
+            wallpaperSizeError: "图片过大 (最大 4MB)",
+            sortOrderLabel: "排序规则",
+            sortDefault: "默认排序",
+            sortFrequency: "根据访问频率"
         }
     };
 
@@ -703,6 +710,13 @@
           </select>
         </div>
         <div class="settings-row">
+          <label class="settings-label" data-i18n="sortOrderLabel">${getMsg("sortOrderLabel")}</label>
+          <select id="sort-order-select" class="form-select">
+            <option value="default" data-i18n="sortDefault">${getMsg("sortDefault")}</option>
+            <option value="frequency" data-i18n="sortFrequency">${getMsg("sortFrequency")}</option>
+          </select>
+        </div>
+        <div class="settings-row">
           <label class="settings-label" data-i18n="shortcutLabel">${getMsg("shortcutLabel")}</label>
           <div id="shortcut-input" tabindex="0">${settings.shortcut}</div>
         </div>
@@ -819,6 +833,7 @@
     const configBtn = shadow.getElementById("fast-bookmark-config-btn");
     const settingsModal = shadow.getElementById("fast-bookmark-settings-modal");
     const languageSelect = shadow.getElementById("language-select");
+    const sortOrderSelect = shadow.getElementById("sort-order-select");
     const shortcutInput = shadow.getElementById("shortcut-input");
     const widthSlider = shadow.getElementById("panel-width-slider");
     const widthValue = shadow.getElementById("panel-width-value");
@@ -895,6 +910,7 @@
         configBtn.addEventListener("click", () => {
             settingsModal.style.display = "flex";
             if (languageSelect) languageSelect.value = settings.language || "auto";
+            if (sortOrderSelect) sortOrderSelect.value = settings.sortOrder || "default";
             shortcutInput.textContent = formatShortcutForDisplay(settings.shortcut);
             tempShortcut = settings.shortcut;
             widthSlider.value = settings.panelWidth || 400;
@@ -997,6 +1013,7 @@
             settings.highlightColorLight = colorLightInput ? colorLightInput.value : "#3730a3";
             settings.highlightColorDark = colorDarkInput ? colorDarkInput.value : "#3730a3";
             settings.language = languageSelect ? languageSelect.value : "auto";
+            settings.sortOrder = sortOrderSelect ? sortOrderSelect.value : "default";
             
             let selectedPosition = "right";
             positionInputs.forEach(input => {
@@ -1012,11 +1029,13 @@
                     highlightColorDark: settings.highlightColorDark,
                     position: settings.position,
                     language: settings.language,
+                    sortOrder: settings.sortOrder,
                 },
                 () => {
                     settingsModal.style.display = "none";
                     updateStyles();
                     updateTexts();
+                    fetchBookmarks();
                 },
             );
         });
@@ -1177,6 +1196,7 @@
                 highlightColorDark: "#3730a3",
                 position: "right",
                 language: "auto",
+                sortOrder: "default",
             },
             (items) => {
                 settings = items;
@@ -1259,17 +1279,78 @@
     // Fetch bookmarks
     function fetchBookmarks() {
         chrome.runtime.sendMessage({ action: "getBookmarks" }, (response) => {
-            bookmarks = response.flattened;
-            bookmarkTree = response.tree;
-            folders = response.folders || [];
-            initFuse();
-
-            // Re-run search if there is a query to update results
-            if (searchInput.value && fuse) {
-                results = fuse.search(searchInput.value).slice(0, 20);
+            // Fetch visit counts if sorting by frequency
+            if (settings.sortOrder === "frequency") {
+                chrome.storage.local.get(["bookmarkVisitCounts"], (result) => {
+                    const counts = result.bookmarkVisitCounts || {};
+                    processBookmarks(response, counts);
+                });
+            } else {
+                processBookmarks(response, {});
             }
+        });
+    }
 
-            renderResults(); // Ensure UI is updated with new data
+    function processBookmarks(response, counts) {
+        bookmarks = response.flattened;
+        bookmarkTree = response.tree;
+        folders = response.folders || [];
+
+        // Apply sorting
+        if (settings.sortOrder === "frequency") {
+            const weightMap = new Map();
+            // Calculate weights for all nodes first
+            bookmarkTree.forEach(node => calculateNodeWeight(node, counts, weightMap));
+            sortBookmarkTree(bookmarkTree, weightMap);
+        }
+
+        initFuse();
+
+        // Re-run search if there is a query to update results
+        if (searchInput.value && fuse) {
+            results = fuse.search(searchInput.value).slice(0, 20);
+        }
+
+        renderResults(); // Ensure UI is updated with new data
+    }
+
+    function calculateNodeWeight(node, counts, weightMap) {
+        let weight = 0;
+        if (!node.url) {
+            // Folder: sum of children weights
+            if (node.children) {
+                node.children.forEach(child => {
+                    weight += calculateNodeWeight(child, counts, weightMap);
+                });
+            }
+        } else {
+            // Bookmark: visit count
+            weight = counts[node.id] || 0;
+        }
+        weightMap.set(node.id, weight);
+        return weight;
+    }
+
+    function sortBookmarkTree(nodes, weightMap) {
+        if (!nodes) return;
+        
+        nodes.forEach(node => {
+            if (node.children) {
+                sortBookmarkTree(node.children, weightMap);
+            }
+        });
+
+        nodes.sort((a, b) => {
+            const weightA = weightMap.get(a.id) || 0;
+            const weightB = weightMap.get(b.id) || 0;
+            
+            if (weightB !== weightA) {
+                return weightB - weightA;
+            }
+            
+            // Fallback to default order (implicit) or maybe title for consistency?
+            // Let's keep it stable by returning 0
+            return 0;
         });
     }
 
@@ -1548,6 +1629,7 @@
         chrome.runtime.sendMessage({
             action: "openBookmark",
             url: bookmark.url,
+            id: bookmark.id,
             newTab: newTab,
         });
         toggle(false);
