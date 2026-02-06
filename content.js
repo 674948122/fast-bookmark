@@ -1288,7 +1288,7 @@
 
         const itemEl = document.createElement("div");
         itemEl.className = "fast-bookmark-result-item";
-        itemEl.style.paddingLeft = `${depth * 16 + 16}px`;
+        itemEl.style.paddingLeft = `${depth * 24 + 16}px`;
 
         const isFolder = !!node.children;
         const isExpanded = expandedFolders.has(node.id);
