@@ -68,7 +68,11 @@
             languageLabel: "Language",
             languageAuto: "Auto (System)",
             languageEn: "English",
-            languageZh: "Simplified Chinese"
+            languageZh: "Simplified Chinese",
+            wallpaperLabel: "Launcher Wallpaper",
+            uploadButton: "Upload Image",
+            clearButton: "Clear",
+            wallpaperSizeError: "Image too large (max 4MB)"
         },
         zh: {
             extensionName: "悬浮书签",
@@ -96,7 +100,11 @@
             languageLabel: "语言",
             languageAuto: "自动 (跟随系统)",
             languageEn: "English",
-            languageZh: "简体中文"
+            languageZh: "简体中文",
+            wallpaperLabel: "启动页壁纸",
+            uploadButton: "上传图片",
+            clearButton: "清除",
+            wallpaperSizeError: "图片过大 (最大 4MB)"
         }
     };
 
@@ -709,6 +717,18 @@
             <input type="color" id="highlight-color-dark" value="${settings.highlightColorDark || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
           </div>
         </div>
+        <div class="settings-row">
+          <label class="settings-label" data-i18n="wallpaperLabel">${getMsg("wallpaperLabel")}</label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="file" id="wallpaper-upload" accept="image/*" style="display: none;">
+            <button id="wallpaper-upload-btn" class="btn" style="display: flex; align-items: center; gap: 8px;">
+               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+               <span data-i18n="uploadButton">${getMsg("uploadButton")}</span>
+            </button>
+            <button id="wallpaper-clear-btn" class="btn" style="display: none; color: #ef4444; border-color: #ef4444;" data-i18n="clearButton">${getMsg("clearButton")}</button>
+          </div>
+          <div id="wallpaper-status" style="margin-top: 8px; font-size: 12px; color: var(--secondary-text);"></div>
+        </div>
         <div class="settings-actions">
           <button id="settings-cancel" class="btn" data-i18n="closeHint">${getMsg("closeHint")}</button>
           <button id="settings-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
@@ -780,6 +800,12 @@
     const saveBtn = shadow.getElementById("settings-save");
     const cancelBtn = shadow.getElementById("settings-cancel");
     
+    // Wallpaper Elements
+    const wallpaperUpload = shadow.getElementById("wallpaper-upload");
+    const wallpaperUploadBtn = shadow.getElementById("wallpaper-upload-btn");
+    const wallpaperClearBtn = shadow.getElementById("wallpaper-clear-btn");
+    const wallpaperStatus = shadow.getElementById("wallpaper-status");
+
     // Edit Modal Elements
     const editModal = shadow.getElementById("fast-bookmark-edit-modal");
     const editNameInput = shadow.getElementById("edit-name-input");
@@ -867,6 +893,74 @@
             shortcutInput.classList.remove("recording");
         });
     }
+
+    // Wallpaper Logic
+    function updateWallpaperUI(hasWallpaper) {
+        if (!wallpaperClearBtn || !wallpaperStatus) return;
+        if (hasWallpaper) {
+            wallpaperClearBtn.style.display = "flex";
+            wallpaperStatus.textContent = "";
+        } else {
+            wallpaperClearBtn.style.display = "none";
+            wallpaperStatus.textContent = "";
+        }
+    }
+
+    if (wallpaperUploadBtn) {
+        wallpaperUploadBtn.addEventListener("click", () => wallpaperUpload.click());
+    }
+
+    if (wallpaperUpload) {
+        wallpaperUpload.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.size > 4 * 1024 * 1024) {
+                alert(getMsg("wallpaperSizeError"));
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const dataUrl = event.target.result;
+                chrome.storage.local.set({ launcherWallpaper: dataUrl }, () => {
+                    updateWallpaperUI(true);
+                    if (isLauncher) {
+                         document.body.style.backgroundImage = `url(${dataUrl})`;
+                         document.body.style.backgroundSize = "cover";
+                         document.body.style.backgroundPosition = "center";
+                         document.body.style.backgroundRepeat = "no-repeat";
+                         document.body.style.backgroundAttachment = "fixed";
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    if (wallpaperClearBtn) {
+        wallpaperClearBtn.addEventListener("click", () => {
+             chrome.storage.local.remove("launcherWallpaper", () => {
+                 updateWallpaperUI(false);
+                 if (isLauncher) {
+                     document.body.style.backgroundImage = "";
+                 }
+             });
+        });
+    }
+
+    // Initialize Wallpaper
+    chrome.storage.local.get("launcherWallpaper", (result) => {
+        const hasWallpaper = !!result.launcherWallpaper;
+        updateWallpaperUI(hasWallpaper);
+        if (isLauncher && hasWallpaper) {
+             document.body.style.backgroundImage = `url(${result.launcherWallpaper})`;
+             document.body.style.backgroundSize = "cover";
+             document.body.style.backgroundPosition = "center";
+             document.body.style.backgroundRepeat = "no-repeat";
+             document.body.style.backgroundAttachment = "fixed";
+        }
+    });
 
     if (saveBtn) {
         saveBtn.addEventListener("click", () => {

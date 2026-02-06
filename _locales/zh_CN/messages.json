@@ -59,6 +59,18 @@
   "shortcutHint": {
     "message": "点击录制快捷键"
   },
+  "wallpaperLabel": {
+    "message": "启动页壁纸"
+  },
+  "uploadButton": {
+    "message": "上传图片"
+  },
+  "clearButton": {
+    "message": "清除"
+  },
+  "wallpaperSizeError": {
+    "message": "图片过大 (最大 4MB)"
+  },
   "shortcutRecording": {
     "message": "正在录制... 请按下按键"
   },

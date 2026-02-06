@@ -59,6 +59,18 @@
   "shortcutHint": {
     "message": "Click to record shortcut"
   },
+  "wallpaperLabel": {
+    "message": "Launcher Wallpaper"
+  },
+  "uploadButton": {
+    "message": "Upload Image"
+  },
+  "clearButton": {
+    "message": "Clear"
+  },
+  "wallpaperSizeError": {
+    "message": "Image too large (max 4MB)"
+  },
   "shortcutRecording": {
     "message": "Recording... Press keys"
   },
