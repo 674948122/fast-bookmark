@@ -77,6 +77,9 @@
   "panelWidthLabel": {
     "message": "面板宽度"
   },
+  "highlightColorLabel": {
+    "message": "高亮色"
+  },
   "highlightColorLightLabel": {
     "message": "高亮色（明亮模式）"
   },

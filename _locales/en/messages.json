@@ -77,6 +77,9 @@
   "panelWidthLabel": {
     "message": "Panel Width"
   },
+  "highlightColorLabel": {
+    "message": "Highlight Color"
+  },
   "highlightColorLightLabel": {
     "message": "Highlight Color (Light)"
   },

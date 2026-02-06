@@ -53,6 +53,7 @@
             panelWidthLabel: "Panel Width",
             highlightColorLightLabel: "Highlight Color (Light)",
             highlightColorDarkLabel: "Highlight Color (Dark)",
+            highlightColorLabel: "Highlight Color",
             closeHint: "Close",
             saveButton: "Save Settings",
             editBookmarkTitle: "Edit Bookmark",
@@ -85,6 +86,7 @@
             panelWidthLabel: "面板宽度",
             highlightColorLightLabel: "高亮色（明亮模式）",
             highlightColorDarkLabel: "高亮色（暗黑模式）",
+            highlightColorLabel: "高亮色",
             closeHint: "关闭",
             saveButton: "保存设置",
             editBookmarkTitle: "编辑书签",
@@ -706,15 +708,22 @@
           </div>
         </div>
         <div class="settings-row">
-          <label class="settings-label" data-i18n="highlightColorLightLabel">${getMsg("highlightColorLightLabel")}</label>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <input type="color" id="highlight-color-light" value="${settings.highlightColorLight || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
-          </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="highlightColorDarkLabel">${getMsg("highlightColorDarkLabel")}</label>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <input type="color" id="highlight-color-dark" value="${settings.highlightColorDark || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
+          <label class="settings-label" data-i18n="highlightColorLabel">${getMsg("highlightColorLabel")}</label>
+          <div style="display: flex; align-items: center; gap: 24px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: var(--secondary-text); display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                  <span data-i18n="themeLight">${getMsg("themeLight")}</span>
+                </span>
+                <input type="color" id="highlight-color-light" value="${settings.highlightColorLight || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; color: var(--secondary-text); display: flex; align-items: center; gap: 4px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                  <span data-i18n="themeDark">${getMsg("themeDark")}</span>
+                </span>
+                <input type="color" id="highlight-color-dark" value="${settings.highlightColorDark || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
+            </div>
           </div>
         </div>
         <div class="settings-row">
