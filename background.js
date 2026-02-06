@@ -18,15 +18,18 @@ async function sendMessageWithRetry(tabId, message, maxRetries = 10, interval = 
 // Listen for the extension icon click
 chrome.action.onClicked.addListener(async (tab) => {
     // Check for internal chrome pages or other restricted pages
+    const launcherUrl = chrome.runtime.getURL("launcher.html");
     if (
-        tab.url.startsWith("chrome://") ||
-        tab.url.startsWith("edge://") ||
-        tab.url.startsWith("https://chrome.google.com/webstore") ||
-        tab.url.startsWith("about:") ||
-        tab.url.startsWith("chrome-extension://")
+        (
+            tab.url.startsWith("chrome://") ||
+            tab.url.startsWith("edge://") ||
+            tab.url.startsWith("https://chrome.google.com/webstore") ||
+            tab.url.startsWith("about:") ||
+            tab.url.startsWith("chrome-extension://")
+        ) && tab.url !== launcherUrl
     ) {
         console.log("Fast Bookmark: Restricted page detected, opening launcher tab.");
-        chrome.tabs.create({ url: chrome.runtime.getURL("launcher.html") });
+        chrome.tabs.create({ url: launcherUrl });
         return;
     }
 
