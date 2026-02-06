@@ -130,6 +130,14 @@
 
     // Styles
     const style = document.createElement("style");
+    function getContrastColor(hexColor) {
+        const r = parseInt(hexColor.substr(1, 2), 16);
+        const g = parseInt(hexColor.substr(3, 2), 16);
+        const b = parseInt(hexColor.substr(5, 2), 16);
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return (yiq >= 128) ? '#333333' : '#ffffff';
+    }
+
     function updateStyles() {
         const isDark =
             settings.theme === "dark" ||
@@ -138,9 +146,13 @@
         
         container.setAttribute("position", settings.position || "right");
 
+        const primaryColor = isDark ? (settings.highlightColorDark || "#3730a3") : (settings.highlightColorLight || "#3730a3");
+        const primaryTextColor = getContrastColor(primaryColor);
+
         style.textContent = `
       :host {
-        --primary-color: ${isDark ? (settings.highlightColorDark || "#3730a3") : (settings.highlightColorLight || "#3730a3")}; /* Customizable highlight color */
+        --primary-color: ${primaryColor}; /* Customizable highlight color */
+        --primary-text-color: ${primaryTextColor};
         --bg-color: ${isDark ? "#111827" : "#ffffff"};
         --text-color: ${isDark ? "#f3f4f6" : "#111827"};
         --secondary-text: ${isDark ? "#9ca3af" : "#4b5563"}; /* Increased contrast */
@@ -337,7 +349,7 @@
 
       .btn-primary {
         background: var(--primary-color);
-        color: white;
+        color: var(--primary-text-color);
         border: none;
       }
 
