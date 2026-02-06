@@ -329,7 +329,7 @@
       }
 
       .settings-actions {
-        margin-top: auto;
+        margin-top: 20px;
         display: flex;
         justify-content: flex-end;
         gap: 12px;
@@ -409,7 +409,7 @@
         flex: 1;
         overflow-y: auto;
         margin: 0;
-        padding: 0 8px;
+        padding: 0 8px 20px 8px;
         list-style: none;
       }
 
