@@ -652,6 +652,25 @@
         font-weight: 600;
         color: var(--text-color);
       }
+
+      .fast-bookmark-children-container {
+        position: relative;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .fast-bookmark-children-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: calc(var(--tree-level) * 24px + 23px);
+        width: 1px;
+        background-color: var(--text-color);
+        opacity: 0.15;
+        pointer-events: none;
+      }
     `;
     }
     shadow.appendChild(style);
@@ -1387,8 +1406,8 @@
 
         if (isFolder && isExpanded && node.children) {
             const childrenContainer = document.createElement("ul");
-            childrenContainer.style.listStyle = "none";
-            childrenContainer.style.padding = "0";
+            childrenContainer.className = "fast-bookmark-children-container";
+            childrenContainer.style.setProperty("--tree-level", depth);
             node.children.forEach((child) => {
                 renderNode(child, childrenContainer, depth + 1);
             });
