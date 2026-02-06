@@ -731,7 +731,7 @@
       </div>
       <div id="fast-bookmark-delete-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100; flex-direction: column; padding: 24px; animation: slideIn 0.2s ease-out;">
         <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="deleteBookmarkTitle">${getMsg("deleteBookmarkTitle")}</h2>
-        <p style="color: var(--text-color); margin-bottom: 24px;" data-i18n="deleteConfirmMessage">${getMsg("deleteConfirmMessage")}</p>
+        <p style="color: var(--text-color); margin-bottom: 24px;font-size: 14px;" data-i18n="deleteConfirmMessage">${getMsg("deleteConfirmMessage")}</p>
         <div class="settings-actions">
           <button id="delete-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
           <button id="delete-confirm" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;" data-i18n="deleteButton">${getMsg("deleteButton")}</button>
