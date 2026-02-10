@@ -69,10 +69,6 @@ Fast Bookmark 是一款现代化的 Chrome 扩展程序，通过快捷键或点�
 - **Shadow DOM**：确保插件 UI 样式与宿主网页完全隔离。
 - **Fuse.js**：提供强大的前端模糊搜索能力。
 
-## 📝 许可证
-
-MIT License
-
 ## 🌟 Star History
 
 <a href="https://star-history.com/#674948122/fast-bookmark&Date">
@@ -82,3 +78,9 @@ MIT License
    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=674948122/fast-bookmark&type=Date" />
  </picture>
 </a>
+
+## 📝 许可证
+
+MIT License
+
+
