@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Fast Bookmark",
   "version": "1.3.0",
-  "description": "Fast Bookmark is a modern Chrome extension that evokes a sidebar suspended above the web page through shortcut keys or clicking on the icon, allowing you to quickly browse, search and manage your bookmarks without displaying the browser's native bookmarks bar. It is beautifully designed, supports dark mode, and does not squeeze the visual space of your web page at all.",
-  "default_locale": "en",
+  "description": "Fast Bookmark 是一款现代化的 Chrome 扩展程序，通过快捷键或点击图标唤起一个悬浮在网页之上的侧边栏，让你无需显示浏览器原生书签栏，也能快速浏览、搜索和管理你的书签。它设计精美，支持暗色模式，并且完全不挤压你的网页可视空间。",
+  "default_locale": "zh_CN",
   "permissions": [
     "activeTab",
     "scripting",
@@ -55,10 +55,5 @@
     "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
-  },
-  "options_page": "options.html",
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
   }
 }
