@@ -72,3 +72,13 @@ Fast Bookmark 是一款现代化的 Chrome 扩展程序，通过快捷键或点�
 ## 📝 许可证
 
 MIT License
+
+## 🌟 Star History
+
+<a href="https://star-history.com/#674948122/fast-bookmark&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=674948122/fast-bookmark&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=674948122/fast-bookmark&type=Date" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=674948122/fast-bookmark&type=Date" />
+ </picture>
+</a>
