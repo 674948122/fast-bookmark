@@ -89,7 +89,8 @@
             commonBookmarksLimitLabel: "Common Bookmarks Count",
             openModeLabel: "Open Bookmarks In",
             openModeCurrent: "Current Tab",
-            openModeNew: "New Tab"
+            openModeNew: "New Tab",
+            openModeHint: "Tip: Right-click a bookmark to open it in the current tab."
         },
         zh: {
             extensionName: "悬浮书签",
@@ -134,7 +135,8 @@
             commonBookmarksLimitLabel: "常用书签数量",
             openModeLabel: "网页打开方式",
             openModeCurrent: "当前标签页",
-            openModeNew: "新标签页"
+            openModeNew: "新标签页",
+            openModeHint: "提示：右键点击书签可在当前标签页打开。"
         }
     };
 
@@ -663,6 +665,22 @@
       .settings-row {
         margin-bottom: 24px;
       }
+      
+      .settings-hint {
+        font-size: 12px;
+        color: var(--secondary-text);
+        margin-top: 8px;
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        line-height: 1.4;
+      }
+
+      .settings-hint svg {
+        flex-shrink: 0;
+        margin-top: 1px;
+        opacity: 0.8;
+      }
 
       .settings-label {
         font-weight: 600;
@@ -1045,6 +1063,10 @@
               <input type="radio" name="openMode" value="new" style="accent-color: var(--primary-color);">
               <span data-i18n="openModeNew">${getMsg("openModeNew")}</span>
             </label>
+          </div>
+          <div class="settings-hint">
+             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+             <span data-i18n="openModeHint">${getMsg("openModeHint")}</span>
           </div>
         </div>
         <div class="settings-row">

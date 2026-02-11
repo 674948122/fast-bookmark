@@ -161,6 +161,9 @@
   "openModeNew": {
     "message": "New Tab"
   },
+  "openModeHint": {
+    "message": "Tip: Right-click a bookmark to open it in the current tab."
+  },
   "opacityLabel": {
     "message": "Background Opacity"
   }

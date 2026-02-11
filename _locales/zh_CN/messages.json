@@ -161,6 +161,9 @@
   "openModeNew": {
     "message": "新标签页"
   },
+  "openModeHint": {
+    "message": "提示：右键点击书签可在当前标签页打开。"
+  },
   "opacityLabel": {
     "message": "背景透明度"
   }
