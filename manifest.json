@@ -10,7 +10,8 @@
     "storage",
     "bookmarks",
     "favicon",
-    "tabs"
+    "tabs",
+    "history"
   ],
   "host_permissions": [
     "<all_urls>"

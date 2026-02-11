@@ -48,7 +48,10 @@
     "message": "显示文件夹路径"
   },
   "showRecentLabel": {
-    "message": "显示最近打开"
+    "message": "显示最近访问"
+  },
+  "recentFolder": {
+    "message": "最近访问"
   },
   "saveButton": {
     "message": "保存设置"

@@ -79,7 +79,9 @@
             sortOrderLabel: "Sort Order",
             sortDefault: "Default",
             sortFrequency: "Most Visited",
-            opacityLabel: "Background Opacity"
+            opacityLabel: "Background Opacity",
+            recentFolder: "Recently Visited",
+            showRecentLabel: "Show Recently Visited"
         },
         zh: {
             extensionName: "悬浮书签",
@@ -116,7 +118,9 @@
             sortOrderLabel: "排序规则",
             sortDefault: "默认排序",
             sortFrequency: "根据访问频率",
-            opacityLabel: "背景透明度"
+            opacityLabel: "背景透明度",
+            recentFolder: "最近访问",
+            showRecentLabel: "显示最近访问"
         }
     };
 
@@ -577,10 +581,23 @@
         z-index: 100;
         display: none;
         flex-direction: column;
-        padding: 32px;
+        padding: 0;
         animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
       }
       
+      .settings-scroll-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 32px;
+        min-height: 0;
+      }
+      
+      #fast-bookmark-settings-modal h2 {
+        padding: 32px 32px 0 32px;
+        margin: 0 0 24px 0;
+        flex-shrink: 0;
+      }
+
       /* Mode classes to hide main content when modal is open */
       .mode-settings #fast-bookmark-main-view,
       .mode-edit #fast-bookmark-main-view,
@@ -705,6 +722,9 @@
         display: flex;
         justify-content: flex-end;
         gap: 12px;
+        padding: 24px 32px 32px 32px;
+        flex-shrink: 0;
+        background: var(--bg-color);
       }
       
       /* Tree Lines */
@@ -726,6 +746,64 @@
         background-color: var(--border-color);
         opacity: 0.6;
         pointer-events: none;
+      }
+
+      /* Toggle Switch */
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+        flex-shrink: 0;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--secondary-text);
+        transition: .3s;
+        border-radius: 24px;
+        opacity: 0.3;
+      }
+      
+      :host-context([theme="dark"]) .toggle-slider {
+        opacity: 0.5;
+      }
+
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      }
+
+      input:checked + .toggle-slider {
+        background-color: var(--primary-color);
+        opacity: 1;
+      }
+
+      input:focus + .toggle-slider {
+        box-shadow: 0 0 1px var(--primary-color);
+      }
+
+      input:checked + .toggle-slider:before {
+        transform: translateX(20px);
       }
     `;
     }
@@ -773,7 +851,8 @@
         </div>
       </div>
       <div id="fast-bookmark-settings-modal">
-        <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="settingsTitle">${getMsg("settingsTitle")}</h2>
+        <h2 style="color: var(--text-color);" data-i18n="settingsTitle">${getMsg("settingsTitle")}</h2>
+        <div class="settings-scroll-container">
         <div class="settings-row">
           <label class="settings-label" data-i18n="languageLabel">${getMsg("languageLabel")}</label>
           <select id="language-select" class="form-select">
@@ -781,6 +860,15 @@
             <option value="en" data-i18n="languageEn">${getMsg("languageEn")}</option>
             <option value="zh" data-i18n="languageZh">${getMsg("languageZh")}</option>
           </select>
+        </div>
+        <div class="settings-row">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showRecentLabel">${getMsg("showRecentLabel")}</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="show-recent-checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
         </div>
         <div class="settings-row">
           <label class="settings-label" data-i18n="sortOrderLabel">${getMsg("sortOrderLabel")}</label>
@@ -851,6 +939,7 @@
           </div>
           <div id="wallpaper-status" style="margin-top: 8px; font-size: 12px; color: var(--secondary-text);"></div>
         </div>
+        </div>
         <div class="settings-actions">
           <button id="settings-cancel" class="btn" data-i18n="closeHint">${getMsg("closeHint")}</button>
           <button id="settings-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
@@ -858,6 +947,7 @@
       </div>
       <div id="fast-bookmark-edit-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; backdrop-filter: none; z-index: 100; flex-direction: column; padding: 32px; animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);">
         <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="editBookmarkTitle">${getMsg("editBookmarkTitle")}</h2>
+        <div class="settings-scroll-container" style="padding: 0;">
         <div class="settings-row">
           <label class="settings-label" data-i18n="nameLabel">${getMsg("nameLabel")}</label>
           <input type="text" id="edit-name-input" class="form-input">
@@ -866,7 +956,8 @@
           <label class="settings-label" data-i18n="folderLabel">${getMsg("folderLabel")}</label>
           <select id="edit-folder-select" class="form-select"></select>
         </div>
-        <div class="settings-actions">
+        </div>
+        <div class="settings-actions" style="padding: 24px 0 0 0; background: transparent;">
           <button id="edit-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
           <button id="edit-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
         </div>
@@ -892,6 +983,7 @@
     const settingsModal = shadow.getElementById("fast-bookmark-settings-modal");
     const languageSelect = shadow.getElementById("language-select");
     const sortOrderSelect = shadow.getElementById("sort-order-select");
+    const showRecentCheckbox = shadow.getElementById("show-recent-checkbox");
     const shortcutInput = shadow.getElementById("shortcut-input");
     const widthSlider = shadow.getElementById("panel-width-slider");
     const widthValue = shadow.getElementById("panel-width-value");
@@ -976,6 +1068,7 @@
             
             if (languageSelect) languageSelect.value = settings.language || "auto";
             if (sortOrderSelect) sortOrderSelect.value = settings.sortOrder || "default";
+            if (showRecentCheckbox) showRecentCheckbox.checked = settings.showRecent !== false; // Default true
             shortcutInput.textContent = formatShortcutForDisplay(settings.shortcut);
             tempShortcut = settings.shortcut;
             widthSlider.value = settings.panelWidth || 400;
@@ -1092,6 +1185,7 @@
             settings.highlightColorDark = colorDarkInput ? colorDarkInput.value : "#3730a3";
             settings.language = languageSelect ? languageSelect.value : "auto";
             settings.sortOrder = sortOrderSelect ? sortOrderSelect.value : "default";
+            settings.showRecent = showRecentCheckbox ? showRecentCheckbox.checked : true;
             
             let selectedPosition = "right";
             positionInputs.forEach(input => {
@@ -1109,6 +1203,7 @@
                     position: settings.position,
                     language: settings.language,
                     sortOrder: settings.sortOrder,
+                    showRecent: settings.showRecent,
                 },
                 () => {
                     settingsModal.style.display = "none";
@@ -1366,22 +1461,66 @@
     // Fetch bookmarks
     function fetchBookmarks() {
         chrome.runtime.sendMessage({ action: "getBookmarks" }, (response) => {
-            // Fetch visit counts if sorting by frequency
+            // Fetch visit counts
+            const keys = [];
             if (settings.sortOrder === "frequency") {
-                chrome.storage.local.get(["bookmarkVisitCounts"], (result) => {
+                keys.push("bookmarkVisitCounts");
+            }
+
+            if (keys.length > 0) {
+                chrome.storage.local.get(keys, (result) => {
                     const counts = result.bookmarkVisitCounts || {};
-                    processBookmarks(response, counts);
+                    // Use recentBookmarks from response (sourced from history)
+                    processBookmarks(response, counts, response.recentBookmarks || []);
                 });
             } else {
-                processBookmarks(response, {});
+                processBookmarks(response, {}, response.recentBookmarks || []);
             }
         });
     }
 
-    function processBookmarks(response, counts) {
+    function processBookmarks(response, counts, recentUrls) {
         bookmarks = response.flattened;
         bookmarkTree = response.tree;
         folders = response.folders || [];
+
+        // Insert Recent Folder if enabled
+        if (settings.showRecent !== false && recentUrls && recentUrls.length > 0) {
+            // Handle both old (string[]) and new (object[]) formats
+            const recentItems = recentUrls
+                .map(entry => {
+                    const url = typeof entry === 'string' ? entry : entry.url;
+                    const timestamp = typeof entry === 'string' ? null : entry.lastVisitTime;
+                    const bookmark = bookmarks.find(b => b.url === url);
+                    
+                    if (!bookmark) return null;
+                    
+                    return {
+                        ...bookmark,
+                        parentId: "fast-bookmark-recent",
+                        lastVisitTime: timestamp
+                    };
+                })
+                .filter(item => item); // Filter out nulls
+
+            if (recentItems.length > 0) {
+                // Ensure we get the latest localized string
+                const recentTitle = getMsg("recentFolder");
+                const recentNode = {
+                    id: "fast-bookmark-recent",
+                    title: recentTitle,
+                    children: recentItems,
+                    parentId: bookmarkTree[0] ? bookmarkTree[0].id : "root",
+                    dateAdded: Date.now(),
+                    index: -1
+                };
+                
+                // Add to the top of the list
+                if (bookmarkTree[0] && bookmarkTree[0].children) {
+                    bookmarkTree[0].children.unshift(recentNode);
+                }
+            }
+        }
 
         // Apply sorting
         if (settings.sortOrder === "frequency") {
@@ -1469,6 +1608,15 @@
         });
     }
 
+    // Format timestamp
+    function formatTime(timestamp) {
+        if (!timestamp) return "";
+        const date = new Date(timestamp);
+        
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
     function renderNode(node, container, depth) {
         const li = document.createElement("li");
         li.className = "fast-bookmark-tree-node";
@@ -1488,7 +1636,14 @@
 
             const icon = document.createElement("div");
             icon.className = "fast-bookmark-folder-icon";
-            icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"></path></svg>`;
+            
+            if (node.id === "fast-bookmark-recent") {
+                 // Clock/History icon
+                 icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+            } else {
+                 icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"></path></svg>`;
+            }
+            
             itemEl.appendChild(icon);
         } else {
             // Indent for leaf nodes to align with folders that have toggles
@@ -1523,23 +1678,40 @@
         const actions = document.createElement("div");
         actions.className = "fast-bookmark-actions";
         
-        const editBtn = document.createElement("div");
-        editBtn.className = "action-btn";
-        editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-        editBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            openEditModal(node, isFolder);
-        });
-        actions.appendChild(editBtn);
+        // Hide actions for the special "Recent" folder AND its children
+        if (node.id === "fast-bookmark-recent" || node.parentId === "fast-bookmark-recent") {
+            actions.style.display = "none";
+            
+            // Show timestamp for recent items
+            if (node.parentId === "fast-bookmark-recent") {
+                const timeSpan = document.createElement("span");
+                timeSpan.style.fontSize = "11px";
+                timeSpan.style.color = "var(--secondary-text)";
+                timeSpan.style.marginLeft = "auto";
+                timeSpan.style.marginRight = "8px";
+                timeSpan.style.whiteSpace = "nowrap";
+                timeSpan.textContent = formatTime(node.lastVisitTime);
+                itemEl.appendChild(timeSpan);
+            }
+        } else {
+            const editBtn = document.createElement("div");
+            editBtn.className = "action-btn";
+            editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+            editBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openEditModal(node, isFolder);
+            });
+            actions.appendChild(editBtn);
 
-        const deleteBtn = document.createElement("div");
-        deleteBtn.className = "action-btn";
-        deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-        deleteBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            openDeleteModal(node, isFolder);
-        });
-        actions.appendChild(deleteBtn);
+            const deleteBtn = document.createElement("div");
+            deleteBtn.className = "action-btn";
+            deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+            deleteBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                openDeleteModal(node, isFolder);
+            });
+            actions.appendChild(deleteBtn);
+        }
 
         itemEl.appendChild(actions);
 

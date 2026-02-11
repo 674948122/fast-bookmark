@@ -186,16 +186,75 @@ chrome.permissions.contains(
     },
 );
 
+// Initialization: Migrate old recentBookmarks format if necessary
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.local.get(["recentBookmarks"], (result) => {
+        let recent = result.recentBookmarks || [];
+        if (recent.length > 0 && typeof recent[0] === 'string') {
+            console.log("Fast Bookmark: Migrating recent bookmarks to new format...");
+            // Use current time as fallback so they are not empty
+            recent = recent.map(url => ({ url, lastVisitTime: Date.now() }));
+            chrome.storage.local.set({ recentBookmarks: recent });
+        }
+    });
+});
+
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("🚀 ~ request.newTab:", request.newTab);
     if (request.action === "getBookmarks") {
-        if (cachedData) {
-            sendResponse(cachedData);
-        } else {
-            getBookmarkData(sendResponse);
-        }
-        return true;
+        const getRecentHistory = async () => {
+            if (!chrome.history) return [];
+            
+            // Search history for recent items
+            const historyItems = await chrome.history.search({ 
+                text: '', 
+                maxResults: 10000, // Increase limit to find bookmarks among other history
+                startTime: Date.now() - 90 * 24 * 60 * 60 * 1000 // Last 90 days
+            });
+
+            return historyItems.map(item => ({
+                url: item.url,
+                lastVisitTime: item.lastVisitTime
+            }));
+        };
+
+        const sendData = async () => {
+            let data;
+            if (cachedData) {
+                data = cachedData;
+            } else {
+                data = await new Promise(resolve => getBookmarkData(resolve));
+            }
+            
+            // Fetch recent history
+            const historyItems = await getRecentHistory();
+            
+            // Helper to normalize URLs (strip trailing slash) for better matching
+            const normalizeUrl = (url) => {
+                try {
+                    return url.replace(/\/$/, '');
+                } catch (e) {
+                    return url;
+                }
+            };
+
+            // Filter history to find items that are actually bookmarks
+            // Create a Set of bookmark URLs for O(1) lookup
+            const bookmarkUrls = new Set(data.flattened.map(b => normalizeUrl(b.url)));
+            
+            const recentBookmarks = historyItems
+                .filter(item => bookmarkUrls.has(normalizeUrl(item.url)))
+                .slice(0, 20); // Top 20
+
+            sendResponse({
+                ...data,
+                recentBookmarks
+            });
+        };
+
+        sendData();
+        return true; // Keep channel open for async response
     }
 
     if (request.action === "openBookmark") {
@@ -207,18 +266,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 chrome.storage.local.set({ bookmarkVisitCounts: counts });
             });
         }
-
-        // Save to recent
-        chrome.storage.local.get(["recentBookmarks"], (result) => {
-            let recent = result.recentBookmarks || [];
-            // Remove if exists
-            recent = recent.filter((url) => url !== request.url);
-            // Add to front
-            recent.unshift(request.url);
-            // Limit to 20
-            recent = recent.slice(0, 20);
-            chrome.storage.local.set({ recentBookmarks: recent });
-        });
+        
+        // No longer manually tracking recentBookmarks since we use chrome.history
 
         if (request.newTab) {
             chrome.tabs.create({ url: request.url });

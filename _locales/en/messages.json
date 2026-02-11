@@ -48,7 +48,10 @@
     "message": "Show Folder Path"
   },
   "showRecentLabel": {
-    "message": "Show Recent Bookmarks"
+    "message": "Show Recently Visited"
+  },
+  "recentFolder": {
+    "message": "Recently Visited"
   },
   "saveButton": {
     "message": "Save Settings"
