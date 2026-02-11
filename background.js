@@ -209,7 +209,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             // Search history for recent items
             const historyItems = await chrome.history.search({ 
                 text: '', 
-                maxResults: 10000, // Increase limit to find bookmarks among other history
+                maxResults: 2000, // Optimized limit (enough to find 20 recent bookmarks)
                 startTime: Date.now() - 90 * 24 * 60 * 60 * 1000 // Last 90 days
             });
 

@@ -28,7 +28,7 @@
     let settings = {
         theme: "auto",
         language: "auto",
-        threshold: 0.4,
+        threshold: 0.2,
         showPath: true,
         showRecent: true,
         shortcut: isMac ? "meta+b" : "ctrl+b",
@@ -509,16 +509,16 @@
       }
 
       .fast-bookmark-result-path {
-        font-size: 10px;
+        font-size: 11px;
         color: var(--primary-color);
         background: color-mix(in srgb, var(--primary-color) 8%, transparent);
-        padding: 1px 5px;
+        padding: 1px 6px;
         border-radius: 4px;
         white-space: nowrap;
         font-weight: 500;
         display: ${settings.showPath ? "inline-block" : "none"};
         flex-shrink: 0;
-        max-width: 100px;
+        max-width: 60%;
         overflow: hidden;
         text-overflow: ellipsis;
         border: 1px solid color-mix(in srgb, var(--primary-color) 15%, transparent);
@@ -1544,7 +1544,7 @@
         chrome.storage.sync.get(
             {
                 theme: "auto",
-                threshold: 0.4,
+                threshold: 0.2,
                 showPath: true,
         showRecent: true,
         showCommon: true,
@@ -1574,12 +1574,13 @@
             fuse = new Fuse(bookmarks, {
                 keys: [
                     { name: "title", weight: 0.7 },
-                    { name: "url", weight: 0.3 },
+                    { name: "url", weight: 0.2 },
+                    { name: "path", weight: 0.1 },
                 ],
                 threshold: settings.threshold,
-                distance: 100,
+                ignoreLocation: true,
                 includeMatches: true,
-                minMatchCharLength: 2,
+                minMatchCharLength: 1,
             });
         }
     }
@@ -1814,15 +1815,16 @@
             return;
         }
 
-        // Skip the root node if it's just a wrapper
         const root = bookmarkTree[0];
         const nodes = (root && root.children) ? root.children : bookmarkTree;
         
         if (!nodes) return;
 
+        const fragment = document.createDocumentFragment();
         nodes.forEach((node) => {
-            renderNode(node, resultsList, 0);
+            renderNode(node, fragment, 0);
         });
+        resultsList.appendChild(fragment);
     }
 
     // Format timestamp
@@ -1841,6 +1843,12 @@
         const itemEl = document.createElement("div");
         itemEl.className = "fast-bookmark-result-item";
         itemEl.style.paddingLeft = `${depth * 24 + 12}px`;
+        
+        // Add data attributes for event delegation
+        itemEl.dataset.id = node.id;
+        itemEl.dataset.title = node.title;
+        if (node.url) itemEl.dataset.url = node.url;
+        if (node.parentId) itemEl.dataset.parentId = node.parentId;
 
         const isFolder = !!node.children;
         const isExpanded = expandedFolders.has(node.id);
@@ -1849,6 +1857,7 @@
             const toggle = document.createElement("div");
             toggle.className = `fast-bookmark-folder-toggle ${isExpanded ? "fast-bookmark-expanded" : ""}`;
             toggle.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+            toggle.dataset.action = "toggle"; // Mark for delegation
             itemEl.appendChild(toggle);
 
             const icon = document.createElement("div");
@@ -1933,51 +1942,22 @@
         } else {
             const editBtn = document.createElement("div");
             editBtn.className = "action-btn";
+            editBtn.dataset.action = "edit"; // Mark for delegation
             editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-            editBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                openEditModal(node, isFolder);
-            });
+            // Removed individual event listener
             actions.appendChild(editBtn);
 
             const deleteBtn = document.createElement("div");
             deleteBtn.className = "action-btn";
+            deleteBtn.dataset.action = "delete"; // Mark for delegation
             deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-            deleteBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                openDeleteModal(node, isFolder);
-            });
+            // Removed individual event listener
             actions.appendChild(deleteBtn);
         }
 
         itemEl.appendChild(actions);
 
-        itemEl.addEventListener("click", (e) => {
-            if (isFolder) {
-                if (expandedFolders.has(node.id)) {
-                    expandedFolders.delete(node.id);
-                } else {
-                    expandedFolders.add(node.id);
-                }
-                renderResults();
-                if (saveSidebarStateTimer) clearTimeout(saveSidebarStateTimer);
-                saveSidebarStateTimer = setTimeout(() => {
-                    chrome.runtime.sendMessage({
-                        action: "saveSidebarState",
-                        state: {
-                            expandedFolders: Array.from(expandedFolders),
-                            scrollTop: resultsList.scrollTop,
-                        },
-                    });
-                }, 200);
-            } else {
-                if (e.altKey) {
-                    navigator.clipboard.writeText(node.url);
-                } else {
-                    openBookmark(node, true);
-                }
-            }
-        });
+        // Removed individual click listener on itemEl
 
         li.appendChild(itemEl);
 
@@ -1996,6 +1976,8 @@
 
     function doRender(displayResults) {
         resultsList.innerHTML = "";
+        const fragment = document.createDocumentFragment();
+
         displayResults.forEach((result, index) => {
             const item = result.item || result;
             const li = document.createElement("li");
@@ -2005,6 +1987,12 @@
             itemEl.className = `fast-bookmark-result-item ${index === selectedIndex ? "fast-bookmark-selected" : ""}`;
             // Add left padding to align with root level tree nodes (12px indent)
             itemEl.style.paddingLeft = "12px";
+
+            // Add data attributes for event delegation
+            itemEl.dataset.id = item.id;
+            itemEl.dataset.title = item.title;
+            itemEl.dataset.url = item.url; // Search results are usually bookmarks, so url exists
+            if (item.parentId) itemEl.dataset.parentId = item.parentId;
 
             const highlightText = (text, key) => {
                 if (!result.matches) return text;
@@ -2053,9 +2041,11 @@
             info.innerHTML = `
         <div class="fast-bookmark-result-header">
           <span class="fast-bookmark-result-title">${highlightedTitle}</span>
-          ${item.path && settings.showPath ? `<span class="fast-bookmark-result-path">${item.path}</span>` : ""}
         </div>
-        <span class="fast-bookmark-result-url">${highlightedUrl}</span>
+        <div class="fast-bookmark-result-meta">
+          ${item.path && settings.showPath ? `<span class="fast-bookmark-result-path">${item.path}</span>` : ""}
+          <span class="fast-bookmark-result-url">${highlightedUrl}</span>
+        </div>
       `;
             itemEl.appendChild(info);
 
@@ -2064,56 +2054,33 @@
             
             const editBtn = document.createElement("div");
             editBtn.className = "action-btn";
+            editBtn.dataset.action = "edit";
             editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-            editBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                // Determine if it's a folder based on item properties
-                const isFolder = !item.url;
-                openEditModal(item, isFolder);
-            });
+            // Removed listener
             actions.appendChild(editBtn);
 
             const deleteBtn = document.createElement("div");
             deleteBtn.className = "action-btn";
+            deleteBtn.dataset.action = "delete";
             deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-            deleteBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const isFolder = !item.url;
-                openDeleteModal(item, isFolder);
-            });
+            // Removed listener
             actions.appendChild(deleteBtn);
 
             itemEl.appendChild(actions);
 
-            itemEl.addEventListener("click", (e) => {
-                if (e.altKey) {
-                    navigator.clipboard.writeText(item.url).then(() => {
-                        const originalTitle = info.querySelector(
-                            ".fast-bookmark-result-title",
-                        ).innerHTML;
-                        info.querySelector(
-                            ".fast-bookmark-result-title",
-                        ).textContent = "Copied!";
-                        setTimeout(() => {
-                            info.querySelector(
-                                ".fast-bookmark-result-title",
-                            ).innerHTML = originalTitle;
-                        }, 1000);
-                    });
-                } else {
-                    // Default to open in new tab for mouse click
-                    openBookmark(item, e.metaKey || e.ctrlKey);
-                }
-            });
+            // Removed listener
 
             li.appendChild(itemEl);
-            resultsList.appendChild(li);
+            fragment.appendChild(li);
 
             if (index === selectedIndex) {
-                li.scrollIntoView({ block: "nearest" });
+                 setTimeout(() => li.scrollIntoView({ block: "nearest" }), 0);
             }
         });
+        
+        resultsList.appendChild(fragment);
     }
+
 
     function openBookmark(bookmark, forceNewTab = false) {
         // Always open in new tab by default (true), unless forceNewTab is explicitly true (Ctrl/Cmd click)
@@ -2244,9 +2211,17 @@
         }
     }
 
-    searchInput.addEventListener("input", (e) => {
-        e.stopPropagation();
-        const query = e.target.value;
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    const handleSearchInput = debounce((query) => {
+        // Stop propagation is handled in the wrapper listener if needed
         if (query) {
             if (fuse) {
                 results = fuse.search(query).slice(0, 20);
@@ -2259,6 +2234,11 @@
         selectedIndex = 0;
         renderResults();
         updateClearBtn();
+    }, 150);
+
+    searchInput.addEventListener("input", (e) => {
+        e.stopPropagation();
+        handleSearchInput(e.target.value);
     });
 
     if (clearBtn) {
@@ -2311,6 +2291,109 @@
     overlay.addEventListener("click", (e) => {
         if (e.target === overlay) {
             toggle(false);
+        }
+    });
+
+    resultsList.addEventListener("click", (e) => {
+        const target = e.target;
+
+        // 1. Handle Folder Toggle
+        const toggleBtn = target.closest(".fast-bookmark-folder-toggle");
+        if (toggleBtn) {
+            e.stopPropagation();
+            const itemEl = toggleBtn.closest(".fast-bookmark-result-item");
+            if (itemEl) {
+                const id = itemEl.dataset.id;
+                if (id) {
+                    if (expandedFolders.has(id)) {
+                        expandedFolders.delete(id);
+                    } else {
+                        expandedFolders.add(id);
+                    }
+                    renderResults();
+                    if (saveSidebarStateTimer) clearTimeout(saveSidebarStateTimer);
+                    saveSidebarStateTimer = setTimeout(() => {
+                        chrome.runtime.sendMessage({
+                            action: "saveSidebarState",
+                            state: {
+                                expandedFolders: Array.from(expandedFolders),
+                                scrollTop: resultsList.scrollTop,
+                            },
+                        });
+                    }, 200);
+                }
+            }
+            return;
+        }
+
+        // 2. Handle Action Buttons (Edit/Delete)
+        const actionBtn = target.closest(".action-btn");
+        if (actionBtn) {
+            e.stopPropagation();
+            const action = actionBtn.dataset.action;
+            const itemEl = actionBtn.closest(".fast-bookmark-result-item");
+            
+            if (itemEl && action) {
+                const id = itemEl.dataset.id;
+                const title = itemEl.dataset.title;
+                const url = itemEl.dataset.url;
+                const parentId = itemEl.dataset.parentId;
+                
+                // Reconstruct item object from dataset
+                const item = { id, title, url, parentId };
+                const isFolder = !url; 
+
+                if (action === "edit") {
+                    openEditModal(item, isFolder);
+                } else if (action === "delete") {
+                    openDeleteModal(item, isFolder);
+                }
+            }
+            return;
+        }
+
+        // 3. Handle Item Click (Open/Copy)
+        const itemEl = target.closest(".fast-bookmark-result-item");
+        if (itemEl) {
+            const id = itemEl.dataset.id;
+            const url = itemEl.dataset.url;
+            
+            // Check if it's a folder (if it has a toggle or no URL)
+            if (!url) {
+                // It's a folder
+                 if (expandedFolders.has(id)) {
+                    expandedFolders.delete(id);
+                } else {
+                    expandedFolders.add(id);
+                }
+                renderResults();
+                if (saveSidebarStateTimer) clearTimeout(saveSidebarStateTimer);
+                saveSidebarStateTimer = setTimeout(() => {
+                    chrome.runtime.sendMessage({
+                        action: "saveSidebarState",
+                        state: {
+                            expandedFolders: Array.from(expandedFolders),
+                            scrollTop: resultsList.scrollTop,
+                        }
+                    });
+                }, 200);
+            } else {
+                // It's a bookmark
+                if (e.altKey) {
+                    navigator.clipboard.writeText(url).then(() => {
+                         const titleEl = itemEl.querySelector(".fast-bookmark-result-title");
+                         if (titleEl) {
+                             const originalTitle = titleEl.innerHTML;
+                             titleEl.textContent = "Copied!";
+                             setTimeout(() => {
+                                 titleEl.innerHTML = originalTitle;
+                             }, 1000);
+                         }
+                    });
+                } else {
+                    openBookmark({ id, url }, e.metaKey || e.ctrlKey);
+                }
+            }
         }
     });
 
