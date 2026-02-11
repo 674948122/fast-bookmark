@@ -509,18 +509,19 @@
       }
 
       .fast-bookmark-result-path {
-        font-size: 9px;
+        font-size: 10px;
         color: var(--primary-color);
-        background: color-mix(in srgb, var(--primary-color) 10%, transparent);
-        padding: 2px 6px;
+        background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+        padding: 1px 5px;
         border-radius: 4px;
         white-space: nowrap;
-        font-weight: 600;
+        font-weight: 500;
         display: ${settings.showPath ? "inline-block" : "none"};
         flex-shrink: 0;
-        max-width: 50%;
+        max-width: 100px;
         overflow: hidden;
         text-overflow: ellipsis;
+        border: 1px solid color-mix(in srgb, var(--primary-color) 15%, transparent);
       }
 
       .fast-bookmark-result-title {
@@ -530,9 +531,18 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        line-height: 1.3;
+        line-height: 1.4;
         flex: 1;
         min-width: 0;
+      }
+
+      .fast-bookmark-result-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 1px;
+        min-width: 0;
+        opacity: 0.85;
       }
 
       .fast-bookmark-result-url {
@@ -541,7 +551,16 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-top: 2px;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .fast-bookmark-time {
+        font-size: 11px;
+        color: var(--secondary-text);
+        white-space: nowrap;
+        margin-left: 8px;
+        font-variant-numeric: tabular-nums;
         opacity: 0.8;
       }
 
@@ -1752,18 +1771,29 @@
             }
         }
 
-        info.innerHTML = `<span class="fast-bookmark-result-title">${title || "Untitled"}</span>`;
+        // Optimized layout for Special Folders (Recent/Common) to allow more space for Title
+        const isSpecialFolder = (node.parentId === "fast-bookmark-recent" || node.parentId === "fast-bookmark-common");
         
-        // Show path for items in Common Bookmarks folder
-        if ((node.parentId === "fast-bookmark-common" || node.parentId === "fast-bookmark-recent") && (node.originalPath || node.path)) {
-            // Use originalPath if available (set for common bookmarks), otherwise fallback to path
+        if (isSpecialFolder) {
+            const showTime = node.parentId === "fast-bookmark-recent";
+            const showPath = (node.originalPath || node.path);
             const displayPath = node.originalPath || node.path;
+            const timeHtml = showTime ? `<span class="fast-bookmark-time">${formatTime(node.lastVisitTime)}</span>` : '';
+            const pathHtml = showPath ? `<span class="fast-bookmark-result-path" title="${displayPath}">${displayPath}</span>` : '';
+            
             info.innerHTML = `
                 <div class="fast-bookmark-result-header">
-                    <span class="fast-bookmark-result-title">${title || "Untitled"}</span>
-                    <span class="fast-bookmark-result-path">${displayPath}</span>
+                    <span class="fast-bookmark-result-title" title="${title || ""}">${title || "Untitled"}</span>
+                    ${timeHtml}
+                </div>
+                <div class="fast-bookmark-result-meta">
+                    ${pathHtml}
+                    <span class="fast-bookmark-result-url">${node.url || ""}</span>
                 </div>
             `;
+        } else {
+            // Standard Layout
+            info.innerHTML = `<span class="fast-bookmark-result-title">${title || "Untitled"}</span>`;
         }
 
         itemEl.appendChild(info);
@@ -1779,18 +1809,6 @@
         if (node.id === "fast-bookmark-recent" || node.parentId === "fast-bookmark-recent" || 
             node.id === "fast-bookmark-common" || node.parentId === "fast-bookmark-common") {
             actions.style.display = "none";
-            
-            // Show timestamp for recent items
-            if (node.parentId === "fast-bookmark-recent") {
-                const timeSpan = document.createElement("span");
-                timeSpan.style.fontSize = "11px";
-                timeSpan.style.color = "var(--secondary-text)";
-                timeSpan.style.marginLeft = "auto";
-                timeSpan.style.marginRight = "8px";
-                timeSpan.style.whiteSpace = "nowrap";
-                timeSpan.textContent = formatTime(node.lastVisitTime);
-                itemEl.appendChild(timeSpan);
-            }
         } else {
             const editBtn = document.createElement("div");
             editBtn.className = "action-btn";
