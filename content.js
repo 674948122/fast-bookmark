@@ -2115,11 +2115,13 @@
     }
 
 
-    function openBookmark(bookmark, forceNewTab = false) {
+    function openBookmark(bookmark, forceNewTab = false, forceCurrentTab = false) {
         let newTab = settings.openMode !== "current";
         
         if (forceNewTab) {
             newTab = true;
+        } else if (forceCurrentTab) {
+            newTab = false;
         }
 
         chrome.runtime.sendMessage({
@@ -2426,6 +2428,18 @@
                 } else {
                     openBookmark({ id, url }, e.metaKey || e.ctrlKey);
                 }
+            }
+        }
+    });
+
+    resultsList.addEventListener("contextmenu", (e) => {
+        const itemEl = e.target.closest(".fast-bookmark-result-item");
+        if (itemEl) {
+            const url = itemEl.dataset.url;
+            if (url) {
+                e.preventDefault();
+                const id = itemEl.dataset.id;
+                openBookmark({ id, url }, false, true);
             }
         }
     });
