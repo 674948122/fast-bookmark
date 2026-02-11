@@ -152,6 +152,15 @@
   "sortFrequency": {
     "message": "根据访问频率"
   },
+  "openModeLabel": {
+    "message": "网页打开方式"
+  },
+  "openModeCurrent": {
+    "message": "当前标签页"
+  },
+  "openModeNew": {
+    "message": "新标签页"
+  },
   "opacityLabel": {
     "message": "背景透明度"
   }

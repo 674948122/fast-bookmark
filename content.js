@@ -39,6 +39,7 @@
         sortOrder: "default",
         backgroundOpacity: 90,
         commonBookmarksLimit: 20,
+        openMode: "new",
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
@@ -85,7 +86,10 @@
             showRecentLabel: "Show Recently Visited",
             commonFolder: "Common Bookmarks",
             showCommonLabel: "Show Common Bookmarks",
-            commonBookmarksLimitLabel: "Common Bookmarks Count"
+            commonBookmarksLimitLabel: "Common Bookmarks Count",
+            openModeLabel: "Open Bookmarks In",
+            openModeCurrent: "Current Tab",
+            openModeNew: "New Tab"
         },
         zh: {
             extensionName: "悬浮书签",
@@ -127,7 +131,10 @@
             showRecentLabel: "显示最近访问",
             commonFolder: "常用书签",
             showCommonLabel: "显示常用书签",
-            commonBookmarksLimitLabel: "常用书签数量"
+            commonBookmarksLimitLabel: "常用书签数量",
+            openModeLabel: "网页打开方式",
+            openModeCurrent: "当前标签页",
+            openModeNew: "新标签页"
         }
     };
 
@@ -1028,6 +1035,19 @@
           </div>
         </div>
         <div class="settings-row">
+          <label class="settings-label" data-i18n="openModeLabel">${getMsg("openModeLabel")}</label>
+          <div style="display: flex; gap: 16px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+              <input type="radio" name="openMode" value="current" style="accent-color: var(--primary-color);">
+              <span data-i18n="openModeCurrent">${getMsg("openModeCurrent")}</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
+              <input type="radio" name="openMode" value="new" style="accent-color: var(--primary-color);">
+              <span data-i18n="openModeNew">${getMsg("openModeNew")}</span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-row">
           <label class="settings-label" data-i18n="positionLabel">${getMsg("positionLabel")}</label>
           <div style="display: flex; gap: 16px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
@@ -1133,6 +1153,7 @@
     const colorLightInput = shadow.getElementById("highlight-color-light");
     const colorDarkInput = shadow.getElementById("highlight-color-dark");
     const positionInputs = shadow.querySelectorAll('input[name="position"]');
+    const openModeInputs = shadow.querySelectorAll('input[name="openMode"]');
     const saveBtn = shadow.getElementById("settings-save");
     const cancelBtn = shadow.getElementById("settings-cancel");
     
@@ -1228,6 +1249,10 @@
             
             positionInputs.forEach(input => {
                 input.checked = input.value === (settings.position || "right");
+            });
+
+            openModeInputs.forEach(input => {
+                input.checked = input.value === (settings.openMode || "new");
             });
 
             // Init Wallpaper UI in Settings
@@ -1367,6 +1392,12 @@
             });
             settings.position = selectedPosition;
 
+            let selectedOpenMode = "new";
+            openModeInputs.forEach(input => {
+                if (input.checked) selectedOpenMode = input.value;
+            });
+            settings.openMode = selectedOpenMode;
+
             chrome.storage.sync.set(
                 {
                     shortcut: tempShortcut,
@@ -1375,6 +1406,7 @@
                     highlightColorLight: settings.highlightColorLight,
                     highlightColorDark: settings.highlightColorDark,
                     position: settings.position,
+                    openMode: settings.openMode,
                     language: settings.language,
                     sortOrder: settings.sortOrder,
                     showRecent: settings.showRecent,
@@ -1557,6 +1589,7 @@
                 position: "right",
                 language: "auto",
                 sortOrder: "default",
+                openMode: "new",
             },
             (items) => {
                 settings = items;
@@ -2083,12 +2116,12 @@
 
 
     function openBookmark(bookmark, forceNewTab = false) {
-        // Always open in new tab by default (true), unless forceNewTab is explicitly true (Ctrl/Cmd click)
-        // Wait, the logic should be: if Ctrl/Cmd click (forceNewTab=true), open in new tab.
-        // If normal click (forceNewTab=false), ALSO open in new tab because that's the default behavior.
-        // So actually, we just want newTab to be true always.
-        // But to support potential future changes or if forceNewTab means "force", let's just use true.
-        const newTab = true; 
+        let newTab = settings.openMode !== "current";
+        
+        if (forceNewTab) {
+            newTab = true;
+        }
+
         chrome.runtime.sendMessage({
             action: "openBookmark",
             url: bookmark.url,

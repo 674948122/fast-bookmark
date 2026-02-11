@@ -268,7 +268,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         
         // No longer manually tracking recentBookmarks since we use chrome.history
 
-        if (request.newTab) {
+        const isLauncher = sender.tab && sender.tab.url && sender.tab.url.endsWith("launcher.html");
+
+        if (request.newTab || (isLauncher && !request.newTab)) {
             chrome.tabs.create({ url: request.url });
         } else {
             chrome.tabs.update({ url: request.url });

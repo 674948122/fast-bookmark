@@ -152,6 +152,15 @@
   "sortFrequency": {
     "message": "Most Visited"
   },
+  "openModeLabel": {
+    "message": "Open Bookmarks In"
+  },
+  "openModeCurrent": {
+    "message": "Current Tab"
+  },
+  "openModeNew": {
+    "message": "New Tab"
+  },
   "opacityLabel": {
     "message": "Background Opacity"
   }
