@@ -1642,7 +1642,7 @@
 
     function setFavicon(imgEl, pageUrl) {
         function applyInline() {
-            const svg = document.createElement("svg");
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             svg.setAttribute("width", "16");
             svg.setAttribute("height", "16");
             svg.setAttribute("viewBox", "0 0 24 24");
@@ -1937,8 +1937,8 @@
 
             const favicon = document.createElement("img");
             favicon.className = "fast-bookmark-favicon";
-            setFavicon(favicon, node.url);
             itemEl.appendChild(favicon);
+            setFavicon(favicon, node.url);
         }
 
         const info = document.createElement("div");
@@ -2087,8 +2087,8 @@
 
             const favicon = document.createElement("img");
             favicon.className = "fast-bookmark-favicon";
-            setFavicon(favicon, item.url);
             itemEl.appendChild(favicon);
+            setFavicon(favicon, item.url);
 
             const info = document.createElement("div");
             info.className = "fast-bookmark-result-info";
@@ -2370,13 +2370,15 @@
                     renderResults();
                     if (saveSidebarStateTimer) clearTimeout(saveSidebarStateTimer);
                     saveSidebarStateTimer = setTimeout(() => {
-                        chrome.runtime.sendMessage({
-                            action: "saveSidebarState",
-                            state: {
-                                expandedFolders: Array.from(expandedFolders),
-                                scrollTop: resultsList.scrollTop,
-                            },
-                        });
+                        if (chrome.runtime && chrome.runtime.id) {
+                            chrome.runtime.sendMessage({
+                                action: "saveSidebarState",
+                                state: {
+                                    expandedFolders: Array.from(expandedFolders),
+                                    scrollTop: resultsList.scrollTop,
+                                },
+                            });
+                        }
                     }, 200);
                 }
             }
@@ -2426,13 +2428,15 @@
                 renderResults();
                 if (saveSidebarStateTimer) clearTimeout(saveSidebarStateTimer);
                 saveSidebarStateTimer = setTimeout(() => {
-                    chrome.runtime.sendMessage({
-                        action: "saveSidebarState",
-                        state: {
-                            expandedFolders: Array.from(expandedFolders),
-                            scrollTop: resultsList.scrollTop,
-                        }
-                    });
+                    if (chrome.runtime && chrome.runtime.id) {
+                        chrome.runtime.sendMessage({
+                            action: "saveSidebarState",
+                            state: {
+                                expandedFolders: Array.from(expandedFolders),
+                                scrollTop: resultsList.scrollTop,
+                            }
+                        });
+                    }
                 }, 200);
             } else {
                 // It's a bookmark
@@ -2470,13 +2474,15 @@
         if (!container.classList.contains("fast-bookmark-searching")) {
             if (scrollSaveTimer) clearTimeout(scrollSaveTimer);
             scrollSaveTimer = setTimeout(() => {
-                chrome.runtime.sendMessage({
-                    action: "saveSidebarState",
-                    state: {
-                        expandedFolders: Array.from(expandedFolders),
-                        scrollTop: resultsList.scrollTop,
-                    },
-                });
+                if (chrome.runtime && chrome.runtime.id) {
+                    chrome.runtime.sendMessage({
+                        action: "saveSidebarState",
+                        state: {
+                            expandedFolders: Array.from(expandedFolders),
+                            scrollTop: resultsList.scrollTop,
+                        },
+                    });
+                }
             }, 200);
         }
     });
