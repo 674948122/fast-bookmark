@@ -201,7 +201,6 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log("🚀 ~ request.newTab:", request.newTab);
     if (request.action === "getBookmarks") {
         const getRecentHistory = async () => {
             if (!chrome.history) return [];
