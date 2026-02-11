@@ -840,6 +840,90 @@
       input:checked + .toggle-slider:before {
         transform: translateX(20px);
       }
+
+      /* Wallpaper Preview */
+      .wallpaper-preview-container {
+        width: 100%;
+        height: 140px;
+        background-color: var(--hover-bg);
+        border: 1px dashed var(--border-color);
+        border-radius: 12px;
+        margin-top: 8px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      
+      .wallpaper-preview-container:hover {
+        border-color: var(--primary-color);
+        background-color: var(--bg-color);
+      }
+      
+      .wallpaper-preview-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: transform 0.3s ease;
+      }
+      
+      .wallpaper-preview-container:hover .wallpaper-preview-image {
+        transform: scale(1.05);
+      }
+      
+      .wallpaper-placeholder {
+        color: var(--secondary-text);
+        font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+      
+      .wallpaper-actions {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        gap: 8px;
+        opacity: 0;
+        transform: translateY(-5px);
+        transition: all 0.2s ease;
+        z-index: 10;
+      }
+      
+      .wallpaper-preview-container:hover .wallpaper-actions {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      .wallpaper-action-btn {
+        width: 32px;
+        height: 32px;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(4px);
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.2s;
+      }
+      
+      .wallpaper-action-btn:hover {
+        background: var(--primary-color);
+        transform: scale(1.1);
+      }
     `;
     }
     shadow.appendChild(style);
@@ -977,13 +1061,20 @@
         </div>
         <div class="settings-row">
           <label class="settings-label" data-i18n="wallpaperLabel">${getMsg("wallpaperLabel")}</label>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <input type="file" id="wallpaper-upload" accept="image/*" style="display: none;">
-            <button id="wallpaper-upload-btn" class="btn" style="display: flex; align-items: center; gap: 8px;">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <input type="file" id="wallpaper-upload" accept="image/*" style="display: none;">
+          
+          <div id="wallpaper-preview-area" class="wallpaper-preview-container">
+            <div id="wallpaper-placeholder-content" class="wallpaper-placeholder">
+               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                <span data-i18n="uploadButton">${getMsg("uploadButton")}</span>
-            </button>
-            <button id="wallpaper-clear-btn" class="btn" style="display: none; color: #ef4444; border-color: #ef4444;" data-i18n="clearButton">${getMsg("clearButton")}</button>
+            </div>
+            <img id="wallpaper-preview-img" class="wallpaper-preview-image" style="display: none;">
+            
+            <div class="wallpaper-actions">
+               <div id="wallpaper-remove-btn" class="wallpaper-action-btn" title="Remove">
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+               </div>
+            </div>
           </div>
           <div id="wallpaper-status" style="margin-top: 8px; font-size: 12px; color: var(--secondary-text);"></div>
         </div>
@@ -1047,8 +1138,10 @@
     
     // Wallpaper Elements
     const wallpaperUpload = shadow.getElementById("wallpaper-upload");
-    const wallpaperUploadBtn = shadow.getElementById("wallpaper-upload-btn");
-    const wallpaperClearBtn = shadow.getElementById("wallpaper-clear-btn");
+    const wallpaperPreviewArea = shadow.getElementById("wallpaper-preview-area");
+    const wallpaperPreviewImg = shadow.getElementById("wallpaper-preview-img");
+    const wallpaperRemoveBtn = shadow.getElementById("wallpaper-remove-btn");
+    const wallpaperPlaceholder = shadow.getElementById("wallpaper-placeholder-content");
     const wallpaperStatus = shadow.getElementById("wallpaper-status");
 
     // Edit Modal Elements
@@ -1136,6 +1229,9 @@
             positionInputs.forEach(input => {
                 input.checked = input.value === (settings.position || "right");
             });
+
+            // Init Wallpaper UI in Settings
+            initWallpaperSettings();
         });
     }
 
@@ -1161,19 +1257,30 @@
     }
 
     // Wallpaper Logic
-    function updateWallpaperUI(hasWallpaper) {
-        if (!wallpaperClearBtn || !wallpaperStatus) return;
-        if (hasWallpaper) {
-            wallpaperClearBtn.style.display = "flex";
-            wallpaperStatus.textContent = "";
+    let tempWallpaperData = null; // null: no change, string: new data, "remove": pending removal
+
+    function updateWallpaperUI(dataUrl) {
+        if (!wallpaperPreviewImg || !wallpaperPlaceholder || !wallpaperRemoveBtn) return;
+        
+        if (dataUrl) {
+            wallpaperPreviewImg.src = dataUrl;
+            wallpaperPreviewImg.style.display = "block";
+            wallpaperPlaceholder.style.display = "none";
+            wallpaperRemoveBtn.style.display = "flex";
         } else {
-            wallpaperClearBtn.style.display = "none";
-            wallpaperStatus.textContent = "";
+            wallpaperPreviewImg.src = "";
+            wallpaperPreviewImg.style.display = "none";
+            wallpaperPlaceholder.style.display = "flex";
+            wallpaperRemoveBtn.style.display = "none";
         }
     }
 
-    if (wallpaperUploadBtn) {
-        wallpaperUploadBtn.addEventListener("click", () => wallpaperUpload.click());
+    if (wallpaperPreviewArea) {
+        wallpaperPreviewArea.addEventListener("click", (e) => {
+             // Don't trigger upload if clicking remove button
+             if (e.target.closest(".wallpaper-action-btn")) return;
+             wallpaperUpload.click();
+        });
     }
 
     if (wallpaperUpload) {
@@ -1189,37 +1296,33 @@
             const reader = new FileReader();
             reader.onload = (event) => {
                 const dataUrl = event.target.result;
-                chrome.storage.local.set({ launcherWallpaper: dataUrl }, () => {
-                    updateWallpaperUI(true);
-                    if (isLauncher) {
-                         document.body.style.backgroundImage = `url(${dataUrl})`;
-                         document.body.style.backgroundSize = "cover";
-                         document.body.style.backgroundPosition = "center";
-                         document.body.style.backgroundRepeat = "no-repeat";
-                         document.body.style.backgroundAttachment = "fixed";
-                    }
-                });
+                tempWallpaperData = dataUrl;
+                updateWallpaperUI(dataUrl);
             };
             reader.readAsDataURL(file);
         });
     }
 
-    if (wallpaperClearBtn) {
-        wallpaperClearBtn.addEventListener("click", () => {
-             chrome.storage.local.remove("launcherWallpaper", () => {
-                 updateWallpaperUI(false);
-                 if (isLauncher) {
-                     document.body.style.backgroundImage = "";
-                 }
-             });
+    if (wallpaperRemoveBtn) {
+        wallpaperRemoveBtn.addEventListener("click", (e) => {
+             e.stopPropagation(); // Prevent triggering upload
+             tempWallpaperData = "remove";
+             updateWallpaperUI(null);
         });
     }
 
-    // Initialize Wallpaper
+    // Initialize Wallpaper Settings when opening modal
+    function initWallpaperSettings() {
+        tempWallpaperData = null; // Reset temp state
+        chrome.storage.local.get("launcherWallpaper", (result) => {
+            const currentWallpaper = result.launcherWallpaper;
+            updateWallpaperUI(currentWallpaper);
+        });
+    }
+    
+    // Initialize Wallpaper for actual usage (on load)
     chrome.storage.local.get("launcherWallpaper", (result) => {
-        const hasWallpaper = !!result.launcherWallpaper;
-        updateWallpaperUI(hasWallpaper);
-        if (isLauncher && hasWallpaper) {
+        if (isLauncher && result.launcherWallpaper) {
              document.body.style.backgroundImage = `url(${result.launcherWallpaper})`;
              document.body.style.backgroundSize = "cover";
              document.body.style.backgroundPosition = "center";
@@ -1230,6 +1333,23 @@
 
     if (saveBtn) {
         saveBtn.addEventListener("click", () => {
+            // Save Wallpaper Changes
+            if (tempWallpaperData === "remove") {
+                chrome.storage.local.remove("launcherWallpaper", () => {
+                    if (isLauncher) document.body.style.backgroundImage = "";
+                });
+            } else if (tempWallpaperData) {
+                chrome.storage.local.set({ launcherWallpaper: tempWallpaperData }, () => {
+                     if (isLauncher) {
+                         document.body.style.backgroundImage = `url(${tempWallpaperData})`;
+                         document.body.style.backgroundSize = "cover";
+                         document.body.style.backgroundPosition = "center";
+                         document.body.style.backgroundRepeat = "no-repeat";
+                         document.body.style.backgroundAttachment = "fixed";
+                     }
+                });
+            }
+            
             settings.shortcut = tempShortcut;
             settings.panelWidth = parseInt(widthSlider.value);
             settings.backgroundOpacity = parseInt(opacitySlider.value);
