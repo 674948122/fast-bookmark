@@ -582,22 +582,19 @@
       }
       
       /* Mode classes to hide main content when modal is open */
-      .mode-settings > #fast-bookmark-sidebar-header,
-      .mode-settings > #fast-bookmark-search-container,
-      .mode-settings > #fast-bookmark-results-list,
-      .mode-settings > #fast-bookmark-empty-state,
-      .mode-settings > #fast-bookmark-footer,
-      .mode-edit > #fast-bookmark-sidebar-header,
-      .mode-edit > #fast-bookmark-search-container,
-      .mode-edit > #fast-bookmark-results-list,
-      .mode-edit > #fast-bookmark-empty-state,
-      .mode-edit > #fast-bookmark-footer,
-      .mode-delete > #fast-bookmark-sidebar-header,
-      .mode-delete > #fast-bookmark-search-container,
-      .mode-delete > #fast-bookmark-results-list,
-      .mode-delete > #fast-bookmark-empty-state,
-      .mode-delete > #fast-bookmark-footer {
+      .mode-settings #fast-bookmark-main-view,
+      .mode-edit #fast-bookmark-main-view,
+      .mode-delete #fast-bookmark-main-view {
         display: none !important;
+      }
+      
+      #fast-bookmark-main-view {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
       }
 
       @keyframes slideIn {
@@ -718,16 +715,40 @@
     overlay.id = "fast-bookmark-overlay";
     overlay.innerHTML = `
     <div id="fast-bookmark-modal">
-      <div id="fast-bookmark-sidebar-header">
-        <h2 id="fast-bookmark-sidebar-title" data-i18n="extensionName">${getMsg("extensionName")}</h2>
-        <div id="fast-bookmark-header-actions">
-          <div id="fast-bookmark-theme-btn" class="fast-bookmark-icon-btn" title="Theme"></div>
-          <div id="fast-bookmark-config-btn" class="fast-bookmark-icon-btn" title="Settings">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      <div id="fast-bookmark-main-view">
+        <div id="fast-bookmark-sidebar-header">
+          <h2 id="fast-bookmark-sidebar-title" data-i18n="extensionName">${getMsg("extensionName")}</h2>
+          <div id="fast-bookmark-header-actions">
+            <div id="fast-bookmark-theme-btn" class="fast-bookmark-icon-btn" title="Theme"></div>
+            <div id="fast-bookmark-config-btn" class="fast-bookmark-icon-btn" title="Settings">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div id="fast-bookmark-search-container">
+          <div id="fast-bookmark-search-input-wrapper">
+            <input type="text" id="fast-bookmark-search-input" placeholder="${getMsg("searchPlaceholder")}" autocomplete="off">
+            <svg id="fast-bookmark-clear-btn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            <svg id="fast-bookmark-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </div>
+        </div>
+        <ul id="fast-bookmark-results-list"></ul>
+        <div id="fast-bookmark-empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <div class="title" data-i18n="noMatches">${getMsg("noMatches")}</div>
+          <div class="desc" data-i18n="noMatchesDesc">${getMsg("noMatchesDesc")}</div>
         </div>
       </div>
       <div id="fast-bookmark-settings-modal">
@@ -814,7 +835,7 @@
           <button id="settings-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
         </div>
       </div>
-      <div id="fast-bookmark-edit-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100; flex-direction: column; padding: 24px; animation: slideIn 0.2s ease-out;">
+      <div id="fast-bookmark-edit-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; backdrop-filter: none; z-index: 100; flex-direction: column; padding: 32px; animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);">
         <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="editBookmarkTitle">${getMsg("editBookmarkTitle")}</h2>
         <div class="settings-row">
           <label class="settings-label" data-i18n="nameLabel">${getMsg("nameLabel")}</label>
@@ -829,35 +850,13 @@
           <button id="edit-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
         </div>
       </div>
-      <div id="fast-bookmark-delete-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 100; flex-direction: column; padding: 24px; animation: slideIn 0.2s ease-out;">
+      <div id="fast-bookmark-delete-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; backdrop-filter: none; z-index: 100; flex-direction: column; padding: 32px; animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);">
         <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="deleteBookmarkTitle">${getMsg("deleteBookmarkTitle")}</h2>
         <p style="color: var(--text-color); margin-bottom: 24px;font-size: 14px;" data-i18n="deleteConfirmMessage">${getMsg("deleteConfirmMessage")}</p>
         <div class="settings-actions">
           <button id="delete-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
           <button id="delete-confirm" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;" data-i18n="deleteButton">${getMsg("deleteButton")}</button>
         </div>
-      </div>
-      <div id="fast-bookmark-search-container">
-        <div id="fast-bookmark-search-input-wrapper">
-          <input type="text" id="fast-bookmark-search-input" placeholder="${getMsg("searchPlaceholder")}" autocomplete="off">
-          <svg id="fast-bookmark-clear-btn" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-          <svg id="fast-bookmark-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </div>
-      </div>
-      <ul id="fast-bookmark-results-list"></ul>
-      <div id="fast-bookmark-empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <div class="title" data-i18n="noMatches">${getMsg("noMatches")}</div>
-        <div class="desc" data-i18n="noMatchesDesc">${getMsg("noMatchesDesc")}</div>
       </div>
     </div>
   `;
