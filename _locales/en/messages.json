@@ -53,6 +53,15 @@
   "recentFolder": {
     "message": "Recently Visited"
   },
+  "commonFolder": {
+    "message": "Common Bookmarks"
+  },
+  "showCommonLabel": {
+    "message": "Show Common Bookmarks"
+  },
+  "commonBookmarksLimitLabel": {
+    "message": "Common Bookmarks Count"
+  },
   "saveButton": {
     "message": "Save Settings"
   },

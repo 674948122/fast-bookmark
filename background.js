@@ -244,8 +244,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             const bookmarkUrls = new Set(data.flattened.map(b => normalizeUrl(b.url)));
             
             const recentBookmarks = historyItems
-                .filter(item => bookmarkUrls.has(normalizeUrl(item.url)))
-                .slice(0, 20); // Top 20
+                .filter(item => bookmarkUrls.has(normalizeUrl(item.url)));
+                // .slice(0, 20); // Removed slice, let frontend handle limit
 
             sendResponse({
                 ...data,

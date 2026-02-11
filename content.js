@@ -38,6 +38,7 @@
         position: "right",
         sortOrder: "default",
         backgroundOpacity: 90,
+        commonBookmarksLimit: 20,
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
@@ -81,7 +82,10 @@
             sortFrequency: "Most Visited",
             opacityLabel: "Background Opacity",
             recentFolder: "Recently Visited",
-            showRecentLabel: "Show Recently Visited"
+            showRecentLabel: "Show Recently Visited",
+            commonFolder: "Common Bookmarks",
+            showCommonLabel: "Show Common Bookmarks",
+            commonBookmarksLimitLabel: "Common Bookmarks Count"
         },
         zh: {
             extensionName: "悬浮书签",
@@ -120,7 +124,10 @@
             sortFrequency: "根据访问频率",
             opacityLabel: "背景透明度",
             recentFolder: "最近访问",
-            showRecentLabel: "显示最近访问"
+            showRecentLabel: "显示最近访问",
+            commonFolder: "常用书签",
+            showCommonLabel: "显示常用书签",
+            commonBookmarksLimitLabel: "常用书签数量"
         }
     };
 
@@ -510,6 +517,10 @@
         white-space: nowrap;
         font-weight: 600;
         display: ${settings.showPath ? "inline-block" : "none"};
+        flex-shrink: 0;
+        max-width: 50%;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .fast-bookmark-result-title {
@@ -520,6 +531,8 @@
         overflow: hidden;
         text-overflow: ellipsis;
         line-height: 1.3;
+        flex: 1;
+        min-width: 0;
       }
 
       .fast-bookmark-result-url {
@@ -596,6 +609,8 @@
         padding: 32px 32px 0 32px;
         margin: 0 0 24px 0;
         flex-shrink: 0;
+        font-size: 20px;
+        font-weight: 700;
       }
 
       /* Mode classes to hide main content when modal is open */
@@ -871,6 +886,19 @@
           </div>
         </div>
         <div class="settings-row">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showCommonLabel">${getMsg("showCommonLabel")}</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="show-common-checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" data-i18n="commonBookmarksLimitLabel">${getMsg("commonBookmarksLimitLabel")}</label>
+          <input type="number" id="common-bookmarks-limit" class="form-input" min="1" max="100" value="${settings.commonBookmarksLimit || 20}">
+        </div>
+        <div class="settings-row">
           <label class="settings-label" data-i18n="sortOrderLabel">${getMsg("sortOrderLabel")}</label>
           <select id="sort-order-select" class="form-select">
             <option value="default" data-i18n="sortDefault">${getMsg("sortDefault")}</option>
@@ -984,6 +1012,8 @@
     const languageSelect = shadow.getElementById("language-select");
     const sortOrderSelect = shadow.getElementById("sort-order-select");
     const showRecentCheckbox = shadow.getElementById("show-recent-checkbox");
+    const showCommonCheckbox = shadow.getElementById("show-common-checkbox");
+    const commonBookmarksLimitInput = shadow.getElementById("common-bookmarks-limit");
     const shortcutInput = shadow.getElementById("shortcut-input");
     const widthSlider = shadow.getElementById("panel-width-slider");
     const widthValue = shadow.getElementById("panel-width-value");
@@ -1069,6 +1099,8 @@
             if (languageSelect) languageSelect.value = settings.language || "auto";
             if (sortOrderSelect) sortOrderSelect.value = settings.sortOrder || "default";
             if (showRecentCheckbox) showRecentCheckbox.checked = settings.showRecent !== false; // Default true
+            if (showCommonCheckbox) showCommonCheckbox.checked = settings.showCommon !== false; // Default true
+            if (commonBookmarksLimitInput) commonBookmarksLimitInput.value = settings.commonBookmarksLimit || 20;
             shortcutInput.textContent = formatShortcutForDisplay(settings.shortcut);
             tempShortcut = settings.shortcut;
             widthSlider.value = settings.panelWidth || 400;
@@ -1186,6 +1218,8 @@
             settings.language = languageSelect ? languageSelect.value : "auto";
             settings.sortOrder = sortOrderSelect ? sortOrderSelect.value : "default";
             settings.showRecent = showRecentCheckbox ? showRecentCheckbox.checked : true;
+            settings.showCommon = showCommonCheckbox ? showCommonCheckbox.checked : true;
+            settings.commonBookmarksLimit = commonBookmarksLimitInput ? (parseInt(commonBookmarksLimitInput.value) || 20) : 20;
             
             let selectedPosition = "right";
             positionInputs.forEach(input => {
@@ -1204,6 +1238,8 @@
                     language: settings.language,
                     sortOrder: settings.sortOrder,
                     showRecent: settings.showRecent,
+                    showCommon: settings.showCommon,
+                    commonBookmarksLimit: settings.commonBookmarksLimit,
                 },
                 () => {
                     settingsModal.style.display = "none";
@@ -1370,8 +1406,10 @@
                 theme: "auto",
                 threshold: 0.4,
                 showPath: true,
-                showRecent: true,
-                shortcut: isMac ? "meta+b" : "ctrl+b",
+        showRecent: true,
+        showCommon: true,
+        commonBookmarksLimit: 20,
+        shortcut: isMac ? "meta+b" : "ctrl+b",
                 panelWidth: 400,
                 backgroundOpacity: 90,
                 highlightColorLight: "#3730a3",
@@ -1461,21 +1499,12 @@
     // Fetch bookmarks
     function fetchBookmarks() {
         chrome.runtime.sendMessage({ action: "getBookmarks" }, (response) => {
-            // Fetch visit counts
-            const keys = [];
-            if (settings.sortOrder === "frequency") {
-                keys.push("bookmarkVisitCounts");
-            }
-
-            if (keys.length > 0) {
-                chrome.storage.local.get(keys, (result) => {
-                    const counts = result.bookmarkVisitCounts || {};
-                    // Use recentBookmarks from response (sourced from history)
-                    processBookmarks(response, counts, response.recentBookmarks || []);
-                });
-            } else {
-                processBookmarks(response, {}, response.recentBookmarks || []);
-            }
+            // Always fetch visit counts for Common Bookmarks feature
+            chrome.storage.local.get(["bookmarkVisitCounts"], (result) => {
+                const counts = result.bookmarkVisitCounts || {};
+                // Use recentBookmarks from response (sourced from history)
+                processBookmarks(response, counts, response.recentBookmarks || []);
+            });
         });
     }
 
@@ -1484,7 +1513,7 @@
         bookmarkTree = response.tree;
         folders = response.folders || [];
 
-        // Insert Recent Folder if enabled
+        // Insert Recently Visited Folder if enabled
         if (settings.showRecent !== false && recentUrls && recentUrls.length > 0) {
             // Handle both old (string[]) and new (object[]) formats
             const recentItems = recentUrls
@@ -1502,14 +1531,17 @@
                     };
                 })
                 .filter(item => item); // Filter out nulls
+            
+            // Limit recent items to 20 (hardcoded as standard recent history limit)
+            const limitedItems = recentItems.slice(0, 20);
 
-            if (recentItems.length > 0) {
+            if (limitedItems.length > 0) {
                 // Ensure we get the latest localized string
                 const recentTitle = getMsg("recentFolder");
                 const recentNode = {
                     id: "fast-bookmark-recent",
                     title: recentTitle,
-                    children: recentItems,
+                    children: limitedItems,
                     parentId: bookmarkTree[0] ? bookmarkTree[0].id : "root",
                     dateAdded: Date.now(),
                     index: -1
@@ -1518,6 +1550,42 @@
                 // Add to the top of the list
                 if (bookmarkTree[0] && bookmarkTree[0].children) {
                     bookmarkTree[0].children.unshift(recentNode);
+                }
+            }
+        }
+
+        // Insert Common Bookmarks Folder if enabled
+        if (settings.showCommon !== false) {
+            const limit = settings.commonBookmarksLimit || 20;
+            
+            // Filter bookmarks that have visits and sort by count
+            const commonItems = bookmarks
+                .filter(b => counts[b.id] && counts[b.id] > 0)
+                .sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0))
+                .slice(0, limit)
+                .map(b => ({
+                    ...b,
+                    parentId: "fast-bookmark-common",
+                    // Keep original path for display
+                    originalPath: b.path
+                }));
+
+            if (commonItems.length > 0) {
+                const commonTitle = getMsg("commonFolder");
+                const commonNode = {
+                    id: "fast-bookmark-common",
+                    title: commonTitle,
+                    children: commonItems,
+                    parentId: bookmarkTree[0] ? bookmarkTree[0].id : "root",
+                    dateAdded: Date.now(),
+                    index: -2 // Ensure it appears before Recent if both are present? Or after?
+                              // If unshift is used, last unshift appears first.
+                              // Current code unshifts Recent first.
+                              // So if we unshift Common NOW, Common will be at the very top.
+                };
+
+                if (bookmarkTree[0] && bookmarkTree[0].children) {
+                    bookmarkTree[0].children.unshift(commonNode);
                 }
             }
         }
@@ -1601,8 +1669,17 @@
 
     function renderTreeView() {
         resultsList.innerHTML = "";
+        
+        if (!bookmarkTree || bookmarkTree.length === 0) {
+            return;
+        }
+
         // Skip the root node if it's just a wrapper
-        const nodes = bookmarkTree[0].children || bookmarkTree;
+        const root = bookmarkTree[0];
+        const nodes = (root && root.children) ? root.children : bookmarkTree;
+        
+        if (!nodes) return;
+
         nodes.forEach((node) => {
             renderNode(node, resultsList, 0);
         });
@@ -1640,6 +1717,9 @@
             if (node.id === "fast-bookmark-recent") {
                  // Clock/History icon
                  icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+            } else if (node.id === "fast-bookmark-common") {
+                 // Star/Heart icon
+                 icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
             } else {
                  icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"></path></svg>`;
             }
@@ -1673,13 +1753,31 @@
         }
 
         info.innerHTML = `<span class="fast-bookmark-result-title">${title || "Untitled"}</span>`;
+        
+        // Show path for items in Common Bookmarks folder
+        if ((node.parentId === "fast-bookmark-common" || node.parentId === "fast-bookmark-recent") && (node.originalPath || node.path)) {
+            // Use originalPath if available (set for common bookmarks), otherwise fallback to path
+            const displayPath = node.originalPath || node.path;
+            info.innerHTML = `
+                <div class="fast-bookmark-result-header">
+                    <span class="fast-bookmark-result-title">${title || "Untitled"}</span>
+                    <span class="fast-bookmark-result-path">${displayPath}</span>
+                </div>
+            `;
+        }
+
         itemEl.appendChild(info);
 
         const actions = document.createElement("div");
         actions.className = "fast-bookmark-actions";
         
-        // Hide actions for the special "Recent" folder AND its children
-        if (node.id === "fast-bookmark-recent" || node.parentId === "fast-bookmark-recent") {
+        // Hide actions for the special "Recent" and "Common" folder AND their children
+        // We allow opening but maybe not editing/deleting directly from these views to avoid confusion?
+        // Actually, user might want to delete a bookmark from "Common" view.
+        // But for "Recent" (history based), deleting might be weird if it's history item. 
+        // Current code hides actions for "Recent". Let's do same for "Common" for consistency unless requested otherwise.
+        if (node.id === "fast-bookmark-recent" || node.parentId === "fast-bookmark-recent" || 
+            node.id === "fast-bookmark-common" || node.parentId === "fast-bookmark-common") {
             actions.style.display = "none";
             
             // Show timestamp for recent items
@@ -2092,8 +2190,9 @@
         }
     });
 
-    loadSettings();
-    fetchBookmarks();
+    loadSettings(() => {
+        fetchBookmarks();
+    });
 
     // Global shortcut listener
     window.addEventListener("keydown", (e) => {

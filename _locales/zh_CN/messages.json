@@ -53,6 +53,15 @@
   "recentFolder": {
     "message": "最近访问"
   },
+  "commonFolder": {
+    "message": "常用书签"
+  },
+  "showCommonLabel": {
+    "message": "显示常用书签"
+  },
+  "commonBookmarksLimitLabel": {
+    "message": "常用书签数量"
+  },
   "saveButton": {
     "message": "保存设置"
   },
