@@ -756,9 +756,10 @@
         display: flex;
         justify-content: flex-end;
         gap: 12px;
-        padding: 24px 32px 32px 32px;
+        padding: 16px 24px;
         flex-shrink: 0;
         background: var(--bg-color);
+        border-top: 1px solid var(--border-color);
       }
       
       /* Tree Lines */
@@ -895,27 +896,27 @@
             <option value="zh" data-i18n="languageZh">${getMsg("languageZh")}</option>
           </select>
         </div>
-        <div class="settings-row">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showRecentLabel">${getMsg("showRecentLabel")}</label>
+        <div class="settings-row" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+          <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
             <label class="toggle-switch">
               <input type="checkbox" id="show-recent-checkbox">
               <span class="toggle-slider"></span>
             </label>
+            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showRecentLabel">${getMsg("showRecentLabel")}</label>
           </div>
         </div>
-        <div class="settings-row">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showCommonLabel">${getMsg("showCommonLabel")}</label>
+        <div class="settings-row" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+          <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
             <label class="toggle-switch">
               <input type="checkbox" id="show-common-checkbox">
               <span class="toggle-slider"></span>
             </label>
+            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showCommonLabel">${getMsg("showCommonLabel")}</label>
           </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="commonBookmarksLimitLabel">${getMsg("commonBookmarksLimitLabel")}</label>
-          <input type="number" id="common-bookmarks-limit" class="form-input" min="1" max="100" value="${settings.commonBookmarksLimit || 20}">
+          <div id="common-limit-container" style="display: flex; align-items: center; gap: 8px;">
+            <label class="settings-label" style="margin-bottom: 0; font-size: 13px; color: var(--secondary-text); white-space: nowrap;" data-i18n="commonBookmarksLimitLabel">${getMsg("commonBookmarksLimitLabel")}</label>
+            <input type="number" id="common-bookmarks-limit" class="form-input" style="width: 60px; padding: 6px 8px; text-align: center;" min="1" max="100" value="${settings.commonBookmarksLimit || 20}">
+          </div>
         </div>
         <div class="settings-row">
           <label class="settings-label" data-i18n="sortOrderLabel">${getMsg("sortOrderLabel")}</label>
@@ -1004,7 +1005,7 @@
           <select id="edit-folder-select" class="form-select"></select>
         </div>
         </div>
-        <div class="settings-actions" style="padding: 24px 0 0 0; background: transparent;">
+        <div class="settings-actions" style="padding: 24px 0 0 0; background: transparent; border: none;">
           <button id="edit-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
           <button id="edit-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
         </div>
@@ -1012,7 +1013,7 @@
       <div id="fast-bookmark-delete-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; backdrop-filter: none; z-index: 100; flex-direction: column; padding: 32px; animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);">
         <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="deleteBookmarkTitle">${getMsg("deleteBookmarkTitle")}</h2>
         <p style="color: var(--text-color); margin-bottom: 24px;font-size: 14px;" data-i18n="deleteConfirmMessage">${getMsg("deleteConfirmMessage")}</p>
-        <div class="settings-actions">
+        <div class="settings-actions" style="padding: 0; background: transparent; border: none;">
           <button id="delete-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
           <button id="delete-confirm" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;" data-i18n="deleteButton">${getMsg("deleteButton")}</button>
         </div>
