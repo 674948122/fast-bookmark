@@ -37,6 +37,7 @@
         highlightColorDark: "#3730a3",
         position: "right",
         sortOrder: "default",
+        backgroundOpacity: 90,
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
@@ -77,7 +78,8 @@
             wallpaperSizeError: "Image too large (max 4MB)",
             sortOrderLabel: "Sort Order",
             sortDefault: "Default",
-            sortFrequency: "Most Visited"
+            sortFrequency: "Most Visited",
+            opacityLabel: "Background Opacity"
         },
         zh: {
             extensionName: "悬浮书签",
@@ -113,7 +115,8 @@
             wallpaperSizeError: "图片过大 (最大 4MB)",
             sortOrderLabel: "排序规则",
             sortDefault: "默认排序",
-            sortFrequency: "根据访问频率"
+            sortFrequency: "根据访问频率",
+            opacityLabel: "背景透明度"
         }
     };
 
@@ -165,27 +168,53 @@
 
         const primaryColor = isDark ? (settings.highlightColorDark || "#3730a3") : (settings.highlightColorLight || "#3730a3");
         const primaryTextColor = getContrastColor(primaryColor);
+        const opacity = (settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90) / 100;
 
         style.textContent = `
       :host {
-        --primary-color: ${primaryColor}; /* Customizable highlight color */
+        --primary-color: ${primaryColor};
         --primary-text-color: ${primaryTextColor};
-        --bg-color: ${isDark ? "#111827" : "#ffffff"};
-        --text-color: ${isDark ? "#f3f4f6" : "#111827"};
-        --secondary-text: ${isDark ? "#9ca3af" : "#4b5563"}; /* Increased contrast */
-        --border-color: ${isDark ? "#374151" : "#e5e7eb"};
-        --hover-bg: color-mix(in srgb, var(--primary-color) ${isDark ? "15%" : "10%"}, var(--bg-color));
-        --selected-bg: color-mix(in srgb, var(--primary-color) ${isDark ? "25%" : "15%"}, var(--bg-color));
-        --shadow: ${isDark ? "-10px 0 25px -5px rgba(0, 0, 0, 0.6)" : "-10px 0 25px -5px rgba(0, 0, 0, 0.1)"};
+        --bg-color: ${isDark ? `rgba(17, 24, 39, ${opacity})` : `rgba(255, 255, 255, ${opacity})`};
+        --text-color: ${isDark ? "#f3f4f6" : "#1f2937"};
+        --secondary-text: ${isDark ? "#9ca3af" : "#6b7280"};
+        --border-color: ${isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.06)"};
+        --hover-bg: ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)"};
+        --selected-bg: color-mix(in srgb, var(--primary-color) ${isDark ? "25%" : "15%"}, transparent);
+        --shadow-lg: ${isDark ? "-20px 0 50px -10px rgba(0, 0, 0, 0.5)" : "-20px 0 50px -10px rgba(0, 0, 0, 0.15)"};
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         --accent-color: var(--primary-color);
         --panel-width: ${settings.panelWidth || 400}px;
+        --radius-md: 12px;
+        --radius-sm: 8px;
+        --backdrop-blur: 20px;
+        
         text-align: initial;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
-        line-height: 1.4;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
       }
       
       :host *, :host *::before, :host *::after {
         box-sizing: border-box;
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: transparent;
+        border-radius: 3px;
+      }
+      :host(:hover) ::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--secondary-text);
       }
 
       #fast-bookmark-overlay {
@@ -194,7 +223,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(0, 0, 0, 0.2); /* Lighter overlay */
         display: none;
         justify-content: flex-end;
         align-items: stretch;
@@ -214,25 +243,32 @@
         max-width: 90vw;
         height: 100vh;
         background: var(--bg-color);
-        box-shadow: var(--shadow);
+        box-shadow: var(--shadow-lg);
+        backdrop-filter: blur(var(--backdrop-blur));
+        -webkit-backdrop-filter: blur(var(--backdrop-blur));
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); /* Smoother spring-like */
         position: absolute;
         top: 0;
+        border-left: 1px solid var(--border-color);
       }
       
       :host([position="right"]) #fast-bookmark-modal {
         right: 0;
         left: auto;
         transform: translateX(100%);
+        border-left: 1px solid var(--border-color);
+        border-right: none;
       }
 
       :host([position="left"]) #fast-bookmark-modal {
         left: 0;
         right: auto;
         transform: translateX(-100%);
+        border-right: 1px solid var(--border-color);
+        border-left: none;
       }
 
       #fast-bookmark-overlay.visible #fast-bookmark-modal {
@@ -240,10 +276,11 @@
       }
 
       #fast-bookmark-sidebar-header {
-        padding: 20px 24px;
+        padding: 24px 24px 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-shrink: 0;
       }
 
       #fast-bookmark-header-actions {
@@ -253,10 +290,11 @@
       }
 
       #fast-bookmark-sidebar-title {
-        font-size: 24px;
-        font-weight: 600;
+        font-size: 20px;
+        font-weight: 700;
         color: var(--text-color);
         margin: 0;
+        letter-spacing: -0.02em;
       }
 
       .fast-bookmark-icon-btn {
@@ -264,9 +302,11 @@
         color: var(--secondary-text);
         display: flex;
         align-items: center;
-        transition: color 0.2s;
-        padding: 4px;
-        border-radius: 4px;
+        justify-content: center;
+        transition: all 0.2s;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
       }
 
       .fast-bookmark-icon-btn:hover {
@@ -274,196 +314,105 @@
         background: var(--hover-bg);
       }
 
-      #fast-bookmark-settings-modal {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: var(--bg-color);
-        z-index: 100;
-        display: none;
-        flex-direction: column;
-        padding: 24px;
-        animation: slideIn 0.2s ease-out;
-      }
-
-      @keyframes slideIn {
-        from { transform: translateY(20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-      }
-
-      .settings-row {
-        margin-bottom: 24px;
-      }
-
-      .settings-label {
-        font-weight: 600;
-        font-size: 14px;
-        color: var(--text-color);
-        margin-bottom: 8px;
-        display: block;
-      }
-
-      #shortcut-input {
-        width: 100%;
-        padding: 12px;
-        background: var(--hover-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        color: var(--text-color);
-        font-family: monospace;
-        font-size: 14px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-
-      #shortcut-input:hover {
-        border-color: var(--primary-color);
-      }
-
-      #shortcut-input.recording {
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
-        color: var(--accent-color);
-      }
-
-      .form-input, .form-select {
-        width: 100%;
-        padding: 8px 12px;
-        background: var(--hover-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        color: var(--text-color);
-        font-size: 14px;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-
-      .form-input:focus, .form-select:focus {
-        border-color: var(--primary-color);
-      }
-
-      .settings-actions {
-        margin-top: 20px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 12px;
-      }
-
-      .btn {
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        border: 1px solid var(--border-color);
-        background: var(--bg-color);
-        color: var(--text-color);
-        transition: all 0.2s;
-      }
-
-      .btn-primary {
-        background: var(--primary-color);
-        color: var(--primary-text-color);
-        border: none;
-      }
-
-      .btn:hover {
-        opacity: 0.9;
-      }
-
       #fast-bookmark-search-container {
-        padding: 0 24px 16px 24px;
+        padding: 0 24px 20px;
+        flex-shrink: 0;
       }
 
       #fast-bookmark-search-input-wrapper {
         display: flex;
         align-items: center;
-        background: var(--hover-bg);
+        background: ${isDark ? "rgba(0, 0, 0, 0.2)" : "rgba(255, 255, 255, 0.6)"};
         border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 8px 12px;
-        transition: border-color 0.2s;
+        border-radius: var(--radius-md);
+        padding: 10px 14px;
+        transition: all 0.2s ease;
       }
 
       #fast-bookmark-search-input-wrapper:focus-within {
+        background: var(--bg-color);
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(55, 48, 163, 0.1);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 15%, transparent);
       }
 
       #fast-bookmark-search-input {
         width: 100%;
         border: none;
         outline: none;
-        font-size: 14px;
+        font-size: 15px;
         color: var(--text-color);
         background: transparent;
+        font-weight: 500;
+      }
+      
+      #fast-bookmark-search-input::placeholder {
+        color: var(--secondary-text);
+        opacity: 0.7;
       }
 
       #fast-bookmark-search-icon {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         color: var(--secondary-text);
         margin-left: 8px;
+        opacity: 0.8;
       }
 
       #fast-bookmark-clear-btn {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         color: var(--secondary-text);
         margin-left: 8px;
         cursor: pointer;
         display: none;
+        transition: color 0.2s;
       }
 
       #fast-bookmark-clear-btn:hover {
-        color: var(--primary-color);
+        color: var(--text-color);
       }
 
       #fast-bookmark-results-list {
         flex: 1;
-        overflow-y: auto;
+        overflow-y: overlay; /* Use overlay if supported */
         margin: 0;
-        padding: 0 8px 20px 8px;
+        padding: 0 12px 24px;
         list-style: none;
       }
 
-      #fast-bookmark-results-list::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      #fast-bookmark-results-list::-webkit-scrollbar-track {
-        background: transparent;
-      }
-
-      #fast-bookmark-results-list::-webkit-scrollbar-thumb {
-        background: var(--border-color);
-        border-radius: 3px;
-      }
-
-      #fast-bookmark-results-list::-webkit-scrollbar-thumb:hover {
-        background: var(--secondary-text);
+      .fast-bookmark-tree-node {
+        list-style: none;
+        margin: 0;
+        padding: 0;
       }
 
       .fast-bookmark-result-item {
         width: 100%;
         box-sizing: border-box;
-        margin: 0;
-        border: 0;
+        margin: 2px 0;
+        border: 1px solid transparent;
         background: transparent;
-        padding: 8px 16px;
+        padding: 8px 12px;
         display: flex;
         align-items: center;
         cursor: pointer;
-        transition: background 0.1s;
-        gap: 8px;
+        transition: all 0.2s ease;
+        gap: 10px;
         user-select: none;
+        border-radius: var(--radius-sm);
+        position: relative;
       }
 
       .fast-bookmark-result-item:hover {
         background: var(--hover-bg);
+        border-color: var(--border-color);
+        transform: translateX(4px);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .fast-bookmark-result-item.fast-bookmark-selected {
+        background: var(--selected-bg);
+        border-color: color-mix(in srgb, var(--primary-color) 30%, transparent);
       }
 
       .fast-bookmark-result-item:hover .fast-bookmark-actions {
@@ -481,12 +430,12 @@
       }
 
       .action-btn {
-        width: 24px;
-        height: 24px;
+        width: 26px;
+        height: 26px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
         color: var(--secondary-text);
         transition: all 0.2s;
@@ -501,28 +450,22 @@
         background: rgba(255, 255, 255, 0.1);
       }
 
-      .fast-bookmark-result-item.fast-bookmark-selected {
-        background: var(--selected-bg);
-      }
-
-      .fast-bookmark-tree-node {
-        display: flex;
-        flex-direction: column;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-
       .fast-bookmark-folder-toggle {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
         cursor: pointer;
-        transition: transform 0.2s;
+        transition: transform 0.2s, color 0.2s;
         color: var(--secondary-text);
+        border-radius: 4px;
+      }
+      
+      .fast-bookmark-folder-toggle:hover {
+        background: var(--hover-bg);
+        color: var(--text-color);
       }
 
       .fast-bookmark-folder-toggle.fast-bookmark-expanded {
@@ -532,18 +475,11 @@
       .fast-bookmark-folder-icon {
         color: var(--accent-color);
         display: flex;
-      }
-
-      .fast-bookmark-node-content {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex: 1;
-        overflow: hidden;
+        opacity: 0.9;
       }
 
       .fast-bookmark-indent {
-        width: 16px;
+        width: 20px; /* Matched to toggle width */
         flex-shrink: 0;
       }
 
@@ -552,6 +488,7 @@
         flex-direction: column;
         overflow: hidden;
         flex-grow: 1;
+        justify-content: center;
       }
 
       .fast-bookmark-result-header {
@@ -561,13 +498,13 @@
       }
 
       .fast-bookmark-result-path {
-        font-size: 10px;
-        color: var(--accent-color);
-        background: ${isDark ? "rgba(0,0,0,0.12)" : "rgba(0,0,0,0.04)"};
-        padding: 1px 6px;
-        border: 1px solid var(--accent-color);
+        font-size: 9px;
+        color: var(--primary-color);
+        background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+        padding: 2px 6px;
         border-radius: 4px;
         white-space: nowrap;
+        font-weight: 600;
         display: ${settings.showPath ? "inline-block" : "none"};
       }
 
@@ -578,6 +515,7 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1.3;
       }
 
       .fast-bookmark-result-url {
@@ -586,21 +524,25 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-top: 1px;
+        margin-top: 2px;
+        opacity: 0.8;
       }
 
       .fast-bookmark-favicon {
         width: 16px;
         height: 16px;
         flex-shrink: 0;
+        border-radius: 3px;
       }
 
       .fast-bookmark-highlight {
-        color: var(--accent-color);
+        color: var(--primary-color);
         font-weight: 700;
-        background: color-mix(in srgb, var(--accent-color) ${isDark ? "15%" : "12%"}, transparent);
-        padding: 0 1px;
-        border-radius: 2px;
+        background: transparent; 
+        /* Removed highlight background for cleaner look, just text color */
+        border-bottom: 2px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
+        border-radius: 0;
+        padding: 0;
       }
 
       #fast-bookmark-empty-state {
@@ -609,57 +551,145 @@
         align-items: center;
         justify-content: center;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
         padding: 0 24px;
         text-align: center;
         color: var(--secondary-text);
       }
 
       #fast-bookmark-empty-state svg {
-        width: 48px;
-        height: 48px;
-        margin-bottom: 16px;
-        opacity: 0.5;
+        width: 64px;
+        height: 64px;
+        margin-bottom: 8px;
+        opacity: 0.2;
+      }
+      
+      /* Settings Modal */
+      #fast-bookmark-settings-modal, #fast-bookmark-edit-modal, #fast-bookmark-delete-modal {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        /* Remove background and backdrop-filter to use parent's */
+        background: transparent;
+        backdrop-filter: none;
+        z-index: 100;
+        display: none;
+        flex-direction: column;
+        padding: 32px;
+        animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      
+      /* Mode classes to hide main content when modal is open */
+      .mode-settings > #fast-bookmark-sidebar-header,
+      .mode-settings > #fast-bookmark-search-container,
+      .mode-settings > #fast-bookmark-results-list,
+      .mode-settings > #fast-bookmark-empty-state,
+      .mode-settings > #fast-bookmark-footer,
+      .mode-edit > #fast-bookmark-sidebar-header,
+      .mode-edit > #fast-bookmark-search-container,
+      .mode-edit > #fast-bookmark-results-list,
+      .mode-edit > #fast-bookmark-empty-state,
+      .mode-edit > #fast-bookmark-footer,
+      .mode-delete > #fast-bookmark-sidebar-header,
+      .mode-delete > #fast-bookmark-search-container,
+      .mode-delete > #fast-bookmark-results-list,
+      .mode-delete > #fast-bookmark-empty-state,
+      .mode-delete > #fast-bookmark-footer {
+        display: none !important;
       }
 
-      #fast-bookmark-empty-state .title {
-        font-size: 16px;
+      @keyframes slideIn {
+        from { transform: translateY(10px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .settings-row {
+        margin-bottom: 24px;
+      }
+
+      .settings-label {
         font-weight: 600;
-        color: var(--text-color);
-        margin-bottom: 4px;
-      }
-
-      #fast-bookmark-empty-state .desc {
         font-size: 14px;
+        color: var(--text-color);
+        margin-bottom: 8px;
+        display: block;
       }
 
-      #fast-bookmark-footer {
-        padding: 8px 16px;
+      .form-input, .form-select {
+        width: 100%;
+        padding: 10px 12px;
         background: var(--hover-bg);
-        border-top: 1px solid var(--border-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-size: 14px;
+        outline: none;
+        transition: all 0.2s;
+      }
+
+      .form-input:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        background: var(--bg-color);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 15%, transparent);
+      }
+      
+      #shortcut-input {
+        width: 100%;
+        padding: 12px;
+        background: var(--hover-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      #shortcut-input:hover {
+        border-color: var(--primary-color);
+        background: var(--bg-color);
+      }
+
+      .btn {
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-color);
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background: var(--primary-color);
+        color: var(--primary-text-color);
+        border: 1px solid transparent;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+      }
+      
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .settings-actions {
+        margin-top: auto;
         display: flex;
         justify-content: flex-end;
-        gap: 16px;
+        gap: 12px;
       }
-
-      .key-hint {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: var(--secondary-text);
-      }
-
-      .key-cap {
-        background: var(--bg-color);
-        border: 1px solid var(--border-color);
-        border-radius: 3px;
-        padding: 1px 4px;
-        font-family: monospace;
-        font-weight: 600;
-        color: var(--text-color);
-      }
-
+      
+      /* Tree Lines */
       .fast-bookmark-children-container {
         position: relative;
         margin: 0;
@@ -672,10 +702,11 @@
         position: absolute;
         top: 0;
         bottom: 0;
-        left: calc(var(--tree-level) * 24px + 23px);
+        /* Adjusted for new padding/indent */
+        left: calc(var(--tree-level) * 24px + 21px); 
         width: 1px;
-        background-color: var(--text-color);
-        opacity: 0.15;
+        background-color: var(--border-color);
+        opacity: 0.6;
         pointer-events: none;
       }
     `;
@@ -725,6 +756,13 @@
           <div style="display: flex; align-items: center; gap: 12px;">
             <input type="range" id="panel-width-slider" min="300" max="800" step="10" value="${settings.panelWidth || 400}" style="flex: 1; accent-color: var(--primary-color);">
             <span id="panel-width-value" style="color: var(--text-color); font-size: 14px; min-width: 45px;">${settings.panelWidth || 400}px</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" data-i18n="opacityLabel">${getMsg("opacityLabel")}</label>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="range" id="opacity-slider" min="0" max="100" step="1" value="${settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90}" style="flex: 1; accent-color: var(--primary-color);">
+            <span id="opacity-value" style="color: var(--text-color); font-size: 14px; min-width: 45px;">${settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90}%</span>
           </div>
         </div>
         <div class="settings-row">
@@ -837,6 +875,8 @@
     const shortcutInput = shadow.getElementById("shortcut-input");
     const widthSlider = shadow.getElementById("panel-width-slider");
     const widthValue = shadow.getElementById("panel-width-value");
+    const opacitySlider = shadow.getElementById("opacity-slider");
+    const opacityValue = shadow.getElementById("opacity-value");
     const colorLightInput = shadow.getElementById("highlight-color-light");
     const colorDarkInput = shadow.getElementById("highlight-color-dark");
     const positionInputs = shadow.querySelectorAll('input[name="position"]');
@@ -905,16 +945,26 @@
             return key.charAt(0).toUpperCase() + key.slice(1);
         }).join("+");
     }
+    
+    // Main modal container for class toggling
+    const modalContainer = shadow.getElementById("fast-bookmark-modal");
 
     if (configBtn) {
         configBtn.addEventListener("click", () => {
             settingsModal.style.display = "flex";
+            modalContainer.classList.add("mode-settings");
+            
             if (languageSelect) languageSelect.value = settings.language || "auto";
             if (sortOrderSelect) sortOrderSelect.value = settings.sortOrder || "default";
             shortcutInput.textContent = formatShortcutForDisplay(settings.shortcut);
             tempShortcut = settings.shortcut;
             widthSlider.value = settings.panelWidth || 400;
             widthValue.textContent = (settings.panelWidth || 400) + "px";
+            
+            const currentOpacity = settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90;
+            if (opacitySlider) opacitySlider.value = currentOpacity;
+            if (opacityValue) opacityValue.textContent = currentOpacity + "%";
+
             if (colorLightInput) colorLightInput.value = settings.highlightColorLight || "#3730a3";
             if (colorDarkInput) colorDarkInput.value = settings.highlightColorDark || "#3730a3";
             
@@ -930,9 +980,16 @@
         });
     }
 
+    if (opacitySlider) {
+        opacitySlider.addEventListener("input", (e) => {
+            opacityValue.textContent = e.target.value + "%";
+        });
+    }
+
     if (cancelBtn) {
         cancelBtn.addEventListener("click", () => {
             settingsModal.style.display = "none";
+            modalContainer.classList.remove("mode-settings");
             isRecording = false;
             shortcutInput.classList.remove("recording");
         });
@@ -1010,6 +1067,7 @@
         saveBtn.addEventListener("click", () => {
             settings.shortcut = tempShortcut;
             settings.panelWidth = parseInt(widthSlider.value);
+            settings.backgroundOpacity = parseInt(opacitySlider.value);
             settings.highlightColorLight = colorLightInput ? colorLightInput.value : "#3730a3";
             settings.highlightColorDark = colorDarkInput ? colorDarkInput.value : "#3730a3";
             settings.language = languageSelect ? languageSelect.value : "auto";
@@ -1025,6 +1083,7 @@
                 {
                     shortcut: tempShortcut,
                     panelWidth: settings.panelWidth,
+                    backgroundOpacity: settings.backgroundOpacity,
                     highlightColorLight: settings.highlightColorLight,
                     highlightColorDark: settings.highlightColorDark,
                     position: settings.position,
@@ -1033,6 +1092,7 @@
                 },
                 () => {
                     settingsModal.style.display = "none";
+                    modalContainer.classList.remove("mode-settings");
                     updateStyles();
                     updateTexts();
                     fetchBookmarks();
@@ -1106,6 +1166,7 @@
     function openEditModal(item, isFolder) {
         currentEditItem = item;
         editModal.style.display = "flex";
+        modalContainer.classList.add("mode-edit");
         editNameInput.value = item.title;
         
         if (isFolder) {
@@ -1130,12 +1191,14 @@
     function openDeleteModal(item, isFolder) {
         currentDeleteItem = { ...item, isFolder };
         deleteModal.style.display = "flex";
+        modalContainer.classList.add("mode-delete");
     }
 
     // Modal Event Listeners
     if (editCancelBtn) {
         editCancelBtn.addEventListener("click", () => {
             editModal.style.display = "none";
+            modalContainer.classList.remove("mode-edit");
             currentEditItem = null;
         });
     }
@@ -1156,6 +1219,7 @@
             });
             
             editModal.style.display = "none";
+            modalContainer.classList.remove("mode-edit");
             currentEditItem = null;
         });
     }
@@ -1163,6 +1227,7 @@
     if (deleteCancelBtn) {
         deleteCancelBtn.addEventListener("click", () => {
             deleteModal.style.display = "none";
+            modalContainer.classList.remove("mode-delete");
             currentDeleteItem = null;
         });
     }
@@ -1178,6 +1243,7 @@
             });
             
             deleteModal.style.display = "none";
+            modalContainer.classList.remove("mode-delete");
             currentDeleteItem = null;
         });
     }
@@ -1192,6 +1258,7 @@
                 showRecent: true,
                 shortcut: isMac ? "meta+b" : "ctrl+b",
                 panelWidth: 400,
+                backgroundOpacity: 90,
                 highlightColorLight: "#3730a3",
                 highlightColorDark: "#3730a3",
                 position: "right",
@@ -1388,7 +1455,7 @@
 
         const itemEl = document.createElement("div");
         itemEl.className = "fast-bookmark-result-item";
-        itemEl.style.paddingLeft = `${depth * 24 + 16}px`;
+        itemEl.style.paddingLeft = `${depth * 24 + 12}px`;
 
         const isFolder = !!node.children;
         const isExpanded = expandedFolders.has(node.id);
@@ -1507,8 +1574,8 @@
 
             const itemEl = document.createElement("div");
             itemEl.className = `fast-bookmark-result-item ${index === selectedIndex ? "fast-bookmark-selected" : ""}`;
-            // Add left padding to align with root level tree nodes (16px indent)
-            itemEl.style.paddingLeft = "16px";
+            // Add left padding to align with root level tree nodes (12px indent)
+            itemEl.style.paddingLeft = "12px";
 
             const highlightText = (text, key) => {
                 if (!result.matches) return text;
@@ -1861,4 +1928,21 @@
             toggle();
         }
     });
+
+    welcomeMsg = () => {
+		let msg = '%c 💚 Something wrong? Email pandegong1992@gmail.com 💚';
+		let styles = [
+			'font-size: 12px',
+			'color: #fffce1',
+			'font-family: monospace',
+			'background: #0e100f',
+			'display: inline-block',
+			'padding: 1rem 3rem',
+			'border: 1px solid #fffce1',
+			'border-radius: 4px;'
+		].join(';');
+		console.log(msg, styles);
+	};
+
+	welcomeMsg();
 })();

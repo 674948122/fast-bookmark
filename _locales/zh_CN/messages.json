@@ -139,5 +139,8 @@
   },
   "sortFrequency": {
     "message": "根据访问频率"
+  },
+  "opacityLabel": {
+    "message": "背景透明度"
   }
 }
