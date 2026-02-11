@@ -614,7 +614,7 @@
         display: block;
       }
 
-      .form-input, .form-select {
+      .form-input {
         width: 100%;
         padding: 10px 12px;
         background: var(--hover-bg);
@@ -624,6 +624,27 @@
         font-size: 14px;
         outline: none;
         transition: all 0.2s;
+      }
+
+      .form-select {
+        width: 100%;
+        padding: 10px 32px 10px 12px;
+        background-color: var(--hover-bg);
+        /* Chevron Icon */
+        background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='${isDark ? "%239ca3af" : "%236b7280"}' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 10px 6px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-color);
+        font-size: 14px;
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+        transition: all 0.2s;
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
       }
 
       .form-input:focus, .form-select:focus {
