@@ -166,5 +166,14 @@
   },
   "opacityLabel": {
     "message": "Background Opacity"
+  },
+  "hideBookmarkTitle": {
+    "message": "Hide"
+  },
+  "unhideBookmarkTitle": {
+    "message": "Unhide"
+  },
+  "showHiddenLabel": {
+    "message": "Show Hidden Bookmarks"
   }
 }

@@ -166,5 +166,14 @@
   },
   "opacityLabel": {
     "message": "背景透明度"
+  },
+  "hideBookmarkTitle": {
+    "message": "隐藏"
+  },
+  "unhideBookmarkTitle": {
+    "message": "取消隐藏"
+  },
+  "showHiddenLabel": {
+    "message": "显示已隐藏的书签"
   }
 }

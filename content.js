@@ -40,9 +40,11 @@
         backgroundOpacity: 90,
         commonBookmarksLimit: 20,
         openMode: "new",
+        showHidden: false,
     };
     let saveSidebarStateTimer = null;
     let scrollSaveTimer = null;
+    let hiddenBookmarkIds = new Set();
 
     // Translation Dictionary
     const i18n = {
@@ -90,7 +92,10 @@
             openModeLabel: "Open Bookmarks In",
             openModeCurrent: "Current Tab",
             openModeNew: "New Tab",
-            openModeHint: "Tip: Right-click a bookmark to open it in the current tab."
+            openModeHint: "Tip: Right-click a bookmark to open it in the current tab.",
+            hideBookmarkTitle: "Hide",
+            unhideBookmarkTitle: "Unhide",
+            showHiddenLabel: "Show Hidden Bookmarks"
         },
         zh: {
             extensionName: "悬浮书签",
@@ -136,7 +141,10 @@
             openModeLabel: "网页打开方式",
             openModeCurrent: "当前标签页",
             openModeNew: "新标签页",
-            openModeHint: "提示：右键点击书签可在当前标签页打开。"
+            openModeHint: "提示：右键点击书签可在当前标签页打开。",
+            hideBookmarkTitle: "隐藏",
+            unhideBookmarkTitle: "取消隐藏",
+            showHiddenLabel: "显示已隐藏的书签"
         }
     };
 
@@ -428,6 +436,15 @@
         border-color: var(--border-color);
         transform: translateX(4px);
         box-shadow: var(--shadow-sm);
+      }
+
+      .fast-bookmark-result-item.fast-bookmark-hidden {
+        opacity: 0.5;
+        filter: grayscale(1);
+      }
+      
+      .fast-bookmark-result-item.fast-bookmark-hidden:hover {
+        opacity: 0.8;
       }
 
       .fast-bookmark-result-item.fast-bookmark-selected {
@@ -1027,6 +1044,15 @@
             <input type="number" id="common-bookmarks-limit" class="form-input" style="width: 60px; padding: 6px 8px; text-align: center;" min="1" max="100" value="${settings.commonBookmarksLimit || 20}">
           </div>
         </div>
+        <div class="settings-row" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+          <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
+            <label class="toggle-switch">
+              <input type="checkbox" id="show-hidden-checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showHiddenLabel">${getMsg("showHiddenLabel")}</label>
+          </div>
+        </div>
         <div class="settings-row">
           <label class="settings-label" data-i18n="sortOrderLabel">${getMsg("sortOrderLabel")}</label>
           <select id="sort-order-select" class="form-select">
@@ -1166,6 +1192,7 @@
     const sortOrderSelect = shadow.getElementById("sort-order-select");
     const showRecentCheckbox = shadow.getElementById("show-recent-checkbox");
     const showCommonCheckbox = shadow.getElementById("show-common-checkbox");
+    const showHiddenCheckbox = shadow.getElementById("show-hidden-checkbox");
     const commonBookmarksLimitInput = shadow.getElementById("common-bookmarks-limit");
     const shortcutInput = shadow.getElementById("shortcut-input");
     const widthSlider = shadow.getElementById("panel-width-slider");
@@ -1256,6 +1283,7 @@
             if (sortOrderSelect) sortOrderSelect.value = settings.sortOrder || "default";
             if (showRecentCheckbox) showRecentCheckbox.checked = settings.showRecent !== false; // Default true
             if (showCommonCheckbox) showCommonCheckbox.checked = settings.showCommon !== false; // Default true
+            if (showHiddenCheckbox) showHiddenCheckbox.checked = settings.showHidden === true; // Default false
             if (commonBookmarksLimitInput) commonBookmarksLimitInput.value = settings.commonBookmarksLimit || 20;
             shortcutInput.textContent = formatShortcutForDisplay(settings.shortcut);
             tempShortcut = settings.shortcut;
@@ -1406,6 +1434,7 @@
             settings.sortOrder = sortOrderSelect ? sortOrderSelect.value : "default";
             settings.showRecent = showRecentCheckbox ? showRecentCheckbox.checked : true;
             settings.showCommon = showCommonCheckbox ? showCommonCheckbox.checked : true;
+            settings.showHidden = showHiddenCheckbox ? showHiddenCheckbox.checked : false;
             settings.commonBookmarksLimit = commonBookmarksLimitInput ? (parseInt(commonBookmarksLimitInput.value) || 20) : 20;
             
             let selectedPosition = "right";
@@ -1433,6 +1462,7 @@
                     sortOrder: settings.sortOrder,
                     showRecent: settings.showRecent,
                     showCommon: settings.showCommon,
+                    showHidden: settings.showHidden,
                     commonBookmarksLimit: settings.commonBookmarksLimit,
                 },
                 () => {
@@ -1601,8 +1631,9 @@
                 threshold: 0.2,
                 showPath: true,
         showRecent: true,
-        showCommon: true,
-        commonBookmarksLimit: 20,
+                showCommon: true,
+                showHidden: false,
+                commonBookmarksLimit: 20,
         shortcut: isMac ? "meta+b" : "ctrl+b",
                 panelWidth: 400,
                 backgroundOpacity: 90,
@@ -1696,8 +1727,10 @@
     function fetchBookmarks() {
         chrome.runtime.sendMessage({ action: "getBookmarks" }, (response) => {
             // Always fetch visit counts for Common Bookmarks feature
-            chrome.storage.local.get(["bookmarkVisitCounts"], (result) => {
+            // And fetch hidden bookmarks
+            chrome.storage.local.get(["bookmarkVisitCounts", "hiddenBookmarkIds"], (result) => {
                 const counts = result.bookmarkVisitCounts || {};
+                hiddenBookmarkIds = new Set(result.hiddenBookmarkIds || []);
                 // Use recentBookmarks from response (sourced from history)
                 processBookmarks(response, counts, response.recentBookmarks || []);
             });
@@ -1847,15 +1880,24 @@
     // Render results
     function renderResults() {
         resultsList.innerHTML = "";
-        if (results.length === 0 && searchInput.value) {
+        
+        let displayResults = results;
+        if (searchInput.value && !settings.showHidden) {
+            displayResults = results.filter(r => {
+                const item = r.item || r;
+                return !hiddenBookmarkIds.has(item.id);
+            });
+        }
+
+        if (displayResults.length === 0 && searchInput.value) {
             emptyState.style.display = "flex";
             resultsList.style.display = "none";
         } else {
             emptyState.style.display = "none";
             resultsList.style.display = "block";
 
-            if (results.length > 0) {
-                doRender(results);
+            if (displayResults.length > 0) {
+                doRender(displayResults);
             } else {
                 // Show tree view when no search
                 renderTreeView();
@@ -1892,11 +1934,19 @@
     }
 
     function renderNode(node, container, depth) {
+        const isHidden = hiddenBookmarkIds.has(node.id);
+        if (isHidden && !settings.showHidden) {
+            return;
+        }
+
         const li = document.createElement("li");
         li.className = "fast-bookmark-tree-node";
 
         const itemEl = document.createElement("div");
         itemEl.className = "fast-bookmark-result-item";
+        if (isHidden) {
+            itemEl.classList.add("fast-bookmark-hidden");
+        }
         itemEl.style.paddingLeft = `${depth * 24 + 12}px`;
         
         // Add data attributes for event delegation
@@ -1995,6 +2045,15 @@
             node.id === "fast-bookmark-common" || node.parentId === "fast-bookmark-common") {
             actions.style.display = "none";
         } else {
+            const hideBtn = document.createElement("div");
+            hideBtn.className = "action-btn";
+            hideBtn.dataset.action = "toggle-hide";
+            hideBtn.title = isHidden ? getMsg("unhideBookmarkTitle") : getMsg("hideBookmarkTitle");
+            hideBtn.innerHTML = isHidden 
+                ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
+                : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            actions.appendChild(hideBtn);
+
             const editBtn = document.createElement("div");
             editBtn.className = "action-btn";
             editBtn.dataset.action = "edit"; // Mark for delegation
@@ -2035,11 +2094,17 @@
 
         displayResults.forEach((result, index) => {
             const item = result.item || result;
+            const isHidden = hiddenBookmarkIds.has(item.id);
+            if (isHidden && !settings.showHidden) return;
+
             const li = document.createElement("li");
             li.className = "fast-bookmark-tree-node";
 
             const itemEl = document.createElement("div");
             itemEl.className = `fast-bookmark-result-item ${index === selectedIndex ? "fast-bookmark-selected" : ""}`;
+            if (isHidden) {
+                itemEl.classList.add("fast-bookmark-hidden");
+            }
             // Add left padding to align with root level tree nodes (12px indent)
             itemEl.style.paddingLeft = "12px";
 
@@ -2107,6 +2172,15 @@
             const actions = document.createElement("div");
             actions.className = "fast-bookmark-actions";
             
+            const hideBtn = document.createElement("div");
+            hideBtn.className = "action-btn";
+            hideBtn.dataset.action = "toggle-hide";
+            hideBtn.title = isHidden ? getMsg("unhideBookmarkTitle") : getMsg("hideBookmarkTitle");
+            hideBtn.innerHTML = isHidden 
+                ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`
+                : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            actions.appendChild(hideBtn);
+
             const editBtn = document.createElement("div");
             editBtn.className = "action-btn";
             editBtn.dataset.action = "edit";
@@ -2402,7 +2476,16 @@
                 const item = { id, title, url, parentId };
                 const isFolder = !url; 
 
-                if (action === "edit") {
+                if (action === "toggle-hide") {
+                    if (hiddenBookmarkIds.has(id)) {
+                        hiddenBookmarkIds.delete(id);
+                    } else {
+                        hiddenBookmarkIds.add(id);
+                    }
+                    chrome.storage.local.set({ hiddenBookmarkIds: Array.from(hiddenBookmarkIds) }, () => {
+                        renderResults();
+                    });
+                } else if (action === "edit") {
                     openEditModal(item, isFolder);
                 } else if (action === "delete") {
                     openDeleteModal(item, isFolder);
