@@ -643,6 +643,31 @@
         animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
       }
       
+      /* Specific styles for Edit/Delete modals to center content */
+      #fast-bookmark-edit-modal, #fast-bookmark-delete-modal {
+        justify-content: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.2); /* Slight overlay within sidebar */
+        backdrop-filter: blur(4px);
+      }
+      
+      .modal-content-wrapper {
+        background: var(--bg-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        animation: scaleIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        max-height: 100%;
+      }
+      
+      @keyframes scaleIn {
+        from { transform: scale(0.95); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+      
       .settings-scroll-container {
         flex: 1;
         overflow-y: auto;
@@ -1152,29 +1177,35 @@
           <button id="settings-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
         </div>
       </div>
-      <div id="fast-bookmark-edit-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; backdrop-filter: none; z-index: 100; flex-direction: column; padding: 32px; animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);">
-        <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="editBookmarkTitle">${getMsg("editBookmarkTitle")}</h2>
-        <div class="settings-scroll-container" style="padding: 0;">
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="nameLabel">${getMsg("nameLabel")}</label>
-          <input type="text" id="edit-name-input" class="form-input">
-        </div>
-        <div class="settings-row" id="edit-folder-row">
-          <label class="settings-label" data-i18n="folderLabel">${getMsg("folderLabel")}</label>
-          <select id="edit-folder-select" class="form-select"></select>
-        </div>
-        </div>
-        <div class="settings-actions" style="padding: 24px 0 0 0; background: transparent; border: none;">
-          <button id="edit-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
-          <button id="edit-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
+      <div id="fast-bookmark-edit-modal">
+        <div class="modal-content-wrapper">
+          <h2 style="margin: 24px 24px 16px 24px; color: var(--text-color); font-size: 18px;" data-i18n="editBookmarkTitle">${getMsg("editBookmarkTitle")}</h2>
+          <div class="settings-scroll-container" style="padding: 0 24px;">
+            <div class="settings-row">
+              <label class="settings-label" data-i18n="nameLabel">${getMsg("nameLabel")}</label>
+              <input type="text" id="edit-name-input" class="form-input">
+            </div>
+            <div class="settings-row" id="edit-folder-row">
+              <label class="settings-label" data-i18n="folderLabel">${getMsg("folderLabel")}</label>
+              <select id="edit-folder-select" class="form-select"></select>
+            </div>
+          </div>
+          <div class="settings-actions" style="padding: 16px 24px; background: transparent; border-top: 1px solid var(--border-color); margin-top: 0;">
+            <button id="edit-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
+            <button id="edit-save" class="btn btn-primary" data-i18n="saveButton">${getMsg("saveButton")}</button>
+          </div>
         </div>
       </div>
-      <div id="fast-bookmark-delete-modal" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; backdrop-filter: none; z-index: 100; flex-direction: column; padding: 32px; animation: slideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);">
-        <h2 style="margin: 0 0 24px 0; color: var(--text-color);" data-i18n="deleteBookmarkTitle">${getMsg("deleteBookmarkTitle")}</h2>
-        <p style="color: var(--text-color); margin-bottom: 24px;font-size: 14px;" data-i18n="deleteConfirmMessage">${getMsg("deleteConfirmMessage")}</p>
-        <div class="settings-actions" style="padding: 0; background: transparent; border: none;">
-          <button id="delete-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
-          <button id="delete-confirm" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;" data-i18n="deleteButton">${getMsg("deleteButton")}</button>
+      <div id="fast-bookmark-delete-modal">
+        <div class="modal-content-wrapper">
+          <h2 style="margin: 24px 24px 16px 24px; color: var(--text-color); font-size: 18px;" data-i18n="deleteBookmarkTitle">${getMsg("deleteBookmarkTitle")}</h2>
+          <div style="padding: 0 24px;">
+             <p style="color: var(--text-color); margin-bottom: 24px; font-size: 14px; line-height: 1.5;" data-i18n="deleteConfirmMessage">${getMsg("deleteConfirmMessage")}</p>
+          </div>
+          <div class="settings-actions" style="padding: 16px 24px; background: transparent; border-top: 1px solid var(--border-color); margin-top: 0;">
+            <button id="delete-cancel" class="btn" data-i18n="cancelButton">${getMsg("cancelButton")}</button>
+            <button id="delete-confirm" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;" data-i18n="deleteButton">${getMsg("deleteButton")}</button>
+          </div>
         </div>
       </div>
     </div>
