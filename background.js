@@ -24,6 +24,7 @@ chrome.action.onClicked.addListener(async (tab) => {
             tab.url.startsWith("chrome://") ||
             tab.url.startsWith("edge://") ||
             tab.url.startsWith("https://chrome.google.com/webstore") ||
+            tab.url.startsWith("https://chromewebstore.google.com") ||
             tab.url.startsWith("about:") ||
             tab.url.startsWith("chrome-extension://")
         ) && tab.url !== launcherUrl
@@ -77,8 +78,11 @@ chrome.action.onClicked.addListener(async (tab) => {
             await sendMessageWithRetry(tab.id, { action: "toggle" });
         } catch (injectError) {
             // Handle cases where content script cannot be injected (e.g., error pages, restricted domains)
-            if (injectError.message && injectError.message.includes("Frame with ID 0 is showing error page")) {
-                console.warn("Fast Bookmark: Cannot inject into error page, opening launcher instead.");
+            if (injectError.message && (
+                injectError.message.includes("Frame with ID 0 is showing error page") ||
+                injectError.message.includes("The extensions gallery cannot be scripted")
+            )) {
+                console.warn("Fast Bookmark: Cannot inject into restricted page, opening launcher instead.");
                 chrome.tabs.create({ url: chrome.runtime.getURL("launcher.html") });
                 return;
             }
