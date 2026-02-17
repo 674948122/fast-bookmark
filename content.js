@@ -60,6 +60,8 @@
             highlightColorLightLabel: "Highlight Color (Light)",
             highlightColorDarkLabel: "Highlight Color (Dark)",
             highlightColorLabel: "Highlight Color",
+            themeLight: "Light",
+            themeDark: "Dark",
             closeHint: "Close",
             saveButton: "Save Settings",
             editBookmarkTitle: "Edit Bookmark",
@@ -95,7 +97,11 @@
             openModeHint: "Tip: Right-click a bookmark to open it in the current tab.",
             hideBookmarkTitle: "Hide",
             unhideBookmarkTitle: "Unhide",
-            showHiddenLabel: "Show Hidden Bookmarks"
+            showHiddenLabel: "Show Hidden Bookmarks",
+            groupGeneral: "General",
+            groupAppearance: "Appearance",
+            groupContent: "Content",
+            groupBehavior: "Behavior"
         },
         zh: {
             extensionName: "悬浮书签",
@@ -109,6 +115,8 @@
             highlightColorLightLabel: "高亮色（明亮模式）",
             highlightColorDarkLabel: "高亮色（暗黑模式）",
             highlightColorLabel: "高亮色",
+            themeLight: "明亮",
+            themeDark: "暗黑",
             closeHint: "关闭",
             saveButton: "保存设置",
             editBookmarkTitle: "编辑书签",
@@ -144,7 +152,11 @@
             openModeHint: "提示：右键点击书签可在当前标签页打开。",
             hideBookmarkTitle: "隐藏",
             unhideBookmarkTitle: "取消隐藏",
-            showHiddenLabel: "显示已隐藏的书签"
+            showHiddenLabel: "显示已隐藏的书签",
+            groupGeneral: "常规",
+            groupAppearance: "外观",
+            groupContent: "内容",
+            groupBehavior: "行为"
         }
     };
 
@@ -727,8 +739,80 @@
         to { transform: translateY(0); opacity: 1; }
       }
 
-      .settings-row {
+      input[type=range] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
+        height: 6px;
+        border-radius: 3px;
+        cursor: pointer;
+        margin: 0;
+      }
+      
+      input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 3px;
+      }
+      
+      input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 18px;
+        width: 18px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        margin-top: -6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        border: 2px solid var(--bg-color);
+        transition: transform 0.1s;
+      }
+      
+      input[type=range]::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+      }
+      
+      input[type=range]:focus {
+        outline: none;
+      }
+
+      .settings-group {
+        background: var(--hover-bg);
+        border-radius: 16px;
+        padding: 4px 16px;
         margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+      }
+      
+      .settings-group-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--secondary-text);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0 0 8px 4px;
+      }
+
+      .settings-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .settings-row:last-child {
+        border-bottom: none;
+      }
+
+      .settings-row.block {
+        display: block;
+        padding: 16px 0;
+      }
+
+      .settings-row.block .settings-label {
+        margin-bottom: 12px;
+        display: block;
       }
       
       .settings-hint {
@@ -900,10 +984,9 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: var(--secondary-text);
-        transition: .3s;
+        background-color: rgba(156, 163, 175, 0.4);
+        transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
         border-radius: 24px;
-        opacity: 0.3;
       }
       
       :host-context([theme="dark"]) .toggle-slider {
@@ -1067,138 +1150,143 @@
       <div id="fast-bookmark-settings-modal">
         <h2 style="color: var(--text-color);" data-i18n="settingsTitle">${getMsg("settingsTitle")}</h2>
         <div class="settings-scroll-container">
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="languageLabel">${getMsg("languageLabel")}</label>
-          <select id="language-select" class="form-select">
-            <option value="auto" data-i18n="languageAuto">${getMsg("languageAuto")}</option>
-            <option value="en" data-i18n="languageEn">${getMsg("languageEn")}</option>
-            <option value="zh" data-i18n="languageZh">${getMsg("languageZh")}</option>
-          </select>
-        </div>
-        <div class="settings-row" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
-          <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
-            <label class="toggle-switch">
-              <input type="checkbox" id="show-recent-checkbox">
-              <span class="toggle-slider"></span>
-            </label>
-            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showRecentLabel">${getMsg("showRecentLabel")}</label>
-          </div>
-        </div>
-        <div class="settings-row" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
-          <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
-            <label class="toggle-switch">
-              <input type="checkbox" id="show-common-checkbox">
-              <span class="toggle-slider"></span>
-            </label>
-            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showCommonLabel">${getMsg("showCommonLabel")}</label>
-          </div>
-          <div id="common-limit-container" style="display: flex; align-items: center; gap: 8px;">
-            <label class="settings-label" style="margin-bottom: 0; font-size: 13px; color: var(--secondary-text); white-space: nowrap;" data-i18n="commonBookmarksLimitLabel">${getMsg("commonBookmarksLimitLabel")}</label>
-            <input type="number" id="common-bookmarks-limit" class="form-input" style="width: 60px; padding: 6px 8px; text-align: center;" min="1" max="100" value="${settings.commonBookmarksLimit || 20}">
-          </div>
-        </div>
-        <div class="settings-row" style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
-          <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
-            <label class="toggle-switch">
-              <input type="checkbox" id="show-hidden-checkbox">
-              <span class="toggle-slider"></span>
-            </label>
-            <label class="settings-label" style="margin-bottom: 0;" data-i18n="showHiddenLabel">${getMsg("showHiddenLabel")}</label>
-          </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="sortOrderLabel">${getMsg("sortOrderLabel")}</label>
-          <select id="sort-order-select" class="form-select">
-            <option value="default" data-i18n="sortDefault">${getMsg("sortDefault")}</option>
-            <option value="frequency" data-i18n="sortFrequency">${getMsg("sortFrequency")}</option>
-          </select>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="shortcutLabel">${getMsg("shortcutLabel")}</label>
-          <div id="shortcut-input" tabindex="0">${settings.shortcut}</div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="panelWidthLabel">${getMsg("panelWidthLabel")}</label>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <input type="range" id="panel-width-slider" min="300" max="800" step="10" value="${settings.panelWidth || 400}" style="flex: 1; accent-color: var(--primary-color);">
-            <span id="panel-width-value" style="color: var(--text-color); font-size: 14px; min-width: 45px;">${settings.panelWidth || 400}px</span>
-          </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="opacityLabel">${getMsg("opacityLabel")}</label>
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <input type="range" id="opacity-slider" min="0" max="100" step="1" value="${settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90}" style="flex: 1; accent-color: var(--primary-color);">
-            <span id="opacity-value" style="color: var(--text-color); font-size: 14px; min-width: 45px;">${settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90}%</span>
-          </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="openModeLabel">${getMsg("openModeLabel")}</label>
-          <div style="display: flex; gap: 16px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
-              <input type="radio" name="openMode" value="current" style="accent-color: var(--primary-color);">
-              <span data-i18n="openModeCurrent">${getMsg("openModeCurrent")}</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
-              <input type="radio" name="openMode" value="new" style="accent-color: var(--primary-color);">
-              <span data-i18n="openModeNew">${getMsg("openModeNew")}</span>
-            </label>
-          </div>
-          <div class="settings-hint">
-             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-             <span data-i18n="openModeHint">${getMsg("openModeHint")}</span>
-          </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="positionLabel">${getMsg("positionLabel")}</label>
-          <div style="display: flex; gap: 16px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
-              <input type="radio" name="position" value="left" style="accent-color: var(--primary-color);">
-              <span data-i18n="positionLeft">${getMsg("positionLeft")}</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-color);">
-              <input type="radio" name="position" value="right" style="accent-color: var(--primary-color);">
-              <span data-i18n="positionRight">${getMsg("positionRight")}</span>
-            </label>
-          </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="highlightColorLabel">${getMsg("highlightColorLabel")}</label>
-          <div style="display: flex; align-items: center; gap: 24px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: var(--secondary-text); display: flex; align-items: center; gap: 4px;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                  <span data-i18n="themeLight">${getMsg("themeLight")}</span>
-                </span>
-                <input type="color" id="highlight-color-light" value="${settings.highlightColorLight || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: var(--secondary-text); display: flex; align-items: center; gap: 4px;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                  <span data-i18n="themeDark">${getMsg("themeDark")}</span>
-                </span>
-                <input type="color" id="highlight-color-dark" value="${settings.highlightColorDark || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
-            </div>
-          </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-label" data-i18n="wallpaperLabel">${getMsg("wallpaperLabel")}</label>
-          <input type="file" id="wallpaper-upload" accept="image/*" style="display: none;">
           
-          <div id="wallpaper-preview-area" class="wallpaper-preview-container">
-            <div id="wallpaper-placeholder-content" class="wallpaper-placeholder">
-               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-               <span data-i18n="uploadButton">${getMsg("uploadButton")}</span>
+          <div class="settings-group-title" data-i18n="groupGeneral">${getMsg("groupGeneral")}</div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <label class="settings-label" data-i18n="languageLabel">${getMsg("languageLabel")}</label>
+              <select id="language-select" class="form-select" style="width: 140px;">
+                <option value="auto" data-i18n="languageAuto">${getMsg("languageAuto")}</option>
+                <option value="en" data-i18n="languageEn">${getMsg("languageEn")}</option>
+                <option value="zh" data-i18n="languageZh">${getMsg("languageZh")}</option>
+              </select>
             </div>
-            <img id="wallpaper-preview-img" class="wallpaper-preview-image" style="display: none;">
-            
-            <div class="wallpaper-actions">
-               <div id="wallpaper-remove-btn" class="wallpaper-action-btn" title="Remove">
-                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-               </div>
+            <div class="settings-row">
+              <label class="settings-label" data-i18n="shortcutLabel">${getMsg("shortcutLabel")}</label>
+              <div id="shortcut-input" tabindex="0" style="width: 140px; padding: 8px;">${settings.shortcut}</div>
             </div>
           </div>
-          <div id="wallpaper-status" style="margin-top: 8px; font-size: 12px; color: var(--secondary-text);"></div>
-        </div>
+
+          <div class="settings-group-title" data-i18n="groupContent">${getMsg("groupContent")}</div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <label class="settings-label" data-i18n="showRecentLabel">${getMsg("showRecentLabel")}</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="show-recent-checkbox">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <label class="settings-label" data-i18n="showCommonLabel">${getMsg("showCommonLabel")}</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="show-common-checkbox">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row" id="common-limit-row" style="display: flex; padding-left: 16px;">
+               <label class="settings-label" style="font-size: 13px; color: var(--secondary-text);" data-i18n="commonBookmarksLimitLabel">${getMsg("commonBookmarksLimitLabel")}</label>
+               <input type="number" id="common-bookmarks-limit" class="form-input" style="width: 60px; padding: 6px 8px; text-align: center;" min="1" max="100" value="${settings.commonBookmarksLimit || 20}">
+            </div>
+             <div class="settings-row">
+              <label class="settings-label" data-i18n="showHiddenLabel">${getMsg("showHiddenLabel")}</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="show-hidden-checkbox">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <label class="settings-label" data-i18n="sortOrderLabel">${getMsg("sortOrderLabel")}</label>
+              <select id="sort-order-select" class="form-select" style="width: 140px;">
+                <option value="default" data-i18n="sortDefault">${getMsg("sortDefault")}</option>
+                <option value="frequency" data-i18n="sortFrequency">${getMsg("sortFrequency")}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="settings-group-title" data-i18n="groupBehavior">${getMsg("groupBehavior")}</div>
+          <div class="settings-group">
+             <div class="settings-row">
+               <label class="settings-label" data-i18n="openModeLabel">${getMsg("openModeLabel")}</label>
+               <div style="display: flex; gap: 12px;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                    <input type="radio" name="openMode" value="current" style="accent-color: var(--primary-color);">
+                    <span data-i18n="openModeCurrent">${getMsg("openModeCurrent")}</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                    <input type="radio" name="openMode" value="new" style="accent-color: var(--primary-color);">
+                    <span data-i18n="openModeNew">${getMsg("openModeNew")}</span>
+                  </label>
+               </div>
+             </div>
+             <div class="settings-row">
+               <label class="settings-label" data-i18n="positionLabel">${getMsg("positionLabel")}</label>
+               <div style="display: flex; gap: 12px;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                    <input type="radio" name="position" value="left" style="accent-color: var(--primary-color);">
+                    <span data-i18n="positionLeft">${getMsg("positionLeft")}</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                    <input type="radio" name="position" value="right" style="accent-color: var(--primary-color);">
+                    <span data-i18n="positionRight">${getMsg("positionRight")}</span>
+                  </label>
+               </div>
+             </div>
+          </div>
+
+          <div class="settings-group-title" data-i18n="groupAppearance">${getMsg("groupAppearance")}</div>
+          <div class="settings-group">
+            <div class="settings-row block">
+              <label class="settings-label" data-i18n="highlightColorLabel">${getMsg("highlightColorLabel")}</label>
+              <div style="display: flex; align-items: center; gap: 24px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; color: var(--secondary-text); display: flex; align-items: center; gap: 4px;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                      <span data-i18n="themeLight">${getMsg("themeLight")}</span>
+                    </span>
+                    <input type="color" id="highlight-color-light" value="${settings.highlightColorLight || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 12px; color: var(--secondary-text); display: flex; align-items: center; gap: 4px;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                      <span data-i18n="themeDark">${getMsg("themeDark")}</span>
+                    </span>
+                    <input type="color" id="highlight-color-dark" value="${settings.highlightColorDark || "#3730a3"}" style="cursor: pointer; width: 40px; height: 32px; padding: 0; border: 1px solid var(--border-color); border-radius: 4px; background: none;">
+                </div>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label class="settings-label" data-i18n="panelWidthLabel">${getMsg("panelWidthLabel")}</label>
+              <div style="display: flex; align-items: center; gap: 12px; width: 200px;">
+                <input type="range" id="panel-width-slider" min="300" max="800" step="10" value="${settings.panelWidth || 400}" style="flex: 1; accent-color: var(--primary-color);">
+                <span id="panel-width-value" style="color: var(--text-color); font-size: 13px; min-width: 40px; text-align: right;">${settings.panelWidth || 400}px</span>
+              </div>
+            </div>
+            <div class="settings-row">
+              <label class="settings-label" data-i18n="opacityLabel">${getMsg("opacityLabel")}</label>
+              <div style="display: flex; align-items: center; gap: 12px; width: 200px;">
+                <input type="range" id="opacity-slider" min="0" max="100" step="1" value="${settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90}" style="flex: 1; accent-color: var(--primary-color);">
+                <span id="opacity-value" style="color: var(--text-color); font-size: 13px; min-width: 40px; text-align: right;">${settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90}%</span>
+              </div>
+            </div>
+            <div class="settings-row block">
+               <label class="settings-label" data-i18n="wallpaperLabel">${getMsg("wallpaperLabel")}</label>
+               <input type="file" id="wallpaper-upload" accept="image/*" style="display: none;">
+               <div id="wallpaper-preview-area" class="wallpaper-preview-container">
+                 <div id="wallpaper-placeholder-content" class="wallpaper-placeholder">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span data-i18n="uploadButton">${getMsg("uploadButton")}</span>
+                 </div>
+                 <img id="wallpaper-preview-img" class="wallpaper-preview-image" style="display: none;">
+                 <div class="wallpaper-actions">
+                    <div id="wallpaper-remove-btn" class="wallpaper-action-btn" title="Remove">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </div>
+                 </div>
+               </div>
+               <div id="wallpaper-status" style="margin-top: 8px; font-size: 12px; color: var(--secondary-text);"></div>
+            </div>
+          </div>
+
         </div>
         <div class="settings-actions">
           <button id="settings-cancel" class="btn" data-i18n="closeHint">${getMsg("closeHint")}</button>
@@ -1209,7 +1297,7 @@
         <div class="modal-content-wrapper">
           <h2 style="margin: 24px 24px 16px 24px; color: var(--text-color); font-size: 18px;" data-i18n="editBookmarkTitle">${getMsg("editBookmarkTitle")}</h2>
           <div class="settings-scroll-container" style="padding: 0 24px;">
-            <div class="settings-row">
+            <div class="settings-row" style="display: block;">
               <label class="settings-label" data-i18n="nameLabel">${getMsg("nameLabel")}</label>
               <input type="text" id="edit-name-input" class="form-input">
             </div>
@@ -1341,7 +1429,11 @@
             if (languageSelect) languageSelect.value = settings.language || "auto";
             if (sortOrderSelect) sortOrderSelect.value = settings.sortOrder || "default";
             if (showRecentCheckbox) showRecentCheckbox.checked = settings.showRecent !== false; // Default true
-            if (showCommonCheckbox) showCommonCheckbox.checked = settings.showCommon !== false; // Default true
+            if (showCommonCheckbox) {
+                showCommonCheckbox.checked = settings.showCommon !== false; // Default true
+                const row = shadow.getElementById("common-limit-row");
+                if (row) row.style.display = showCommonCheckbox.checked ? "flex" : "none";
+            }
             if (showHiddenCheckbox) showHiddenCheckbox.checked = settings.showHidden === true; // Default false
             if (commonBookmarksLimitInput) commonBookmarksLimitInput.value = settings.commonBookmarksLimit || 20;
             shortcutInput.textContent = formatShortcutForDisplay(settings.shortcut);
@@ -1464,6 +1556,13 @@
              document.body.style.backgroundAttachment = "fixed";
         }
     });
+
+    if (showCommonCheckbox) {
+        showCommonCheckbox.addEventListener("change", () => {
+            const row = shadow.getElementById("common-limit-row");
+            if (row) row.style.display = showCommonCheckbox.checked ? "flex" : "none";
+        });
+    }
 
     if (saveBtn) {
         saveBtn.addEventListener("click", () => {

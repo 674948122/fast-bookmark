@@ -175,5 +175,17 @@
   },
   "showHiddenLabel": {
     "message": "显示已隐藏的书签"
+  },
+  "groupGeneral": {
+    "message": "常规"
+  },
+  "groupAppearance": {
+    "message": "外观"
+  },
+  "groupContent": {
+    "message": "内容"
+  },
+  "groupBehavior": {
+    "message": "行为"
   }
 }

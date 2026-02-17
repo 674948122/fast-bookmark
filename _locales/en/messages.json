@@ -175,5 +175,17 @@
   },
   "showHiddenLabel": {
     "message": "Show Hidden Bookmarks"
+  },
+  "groupGeneral": {
+    "message": "General"
+  },
+  "groupAppearance": {
+    "message": "Appearance"
+  },
+  "groupContent": {
+    "message": "Content"
+  },
+  "groupBehavior": {
+    "message": "Behavior"
   }
 }
