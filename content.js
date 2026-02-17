@@ -363,19 +363,24 @@
       #fast-bookmark-search-input-wrapper {
         display: flex;
         align-items: center;
-        background: ${isDark ? "rgba(0, 0, 0, 0.2)" : "rgba(255, 255, 255, 0.5)"};
-        border: 1px solid var(--glass-border);
+        background: ${isDark ? "rgba(0, 0, 0, 0.25)" : "rgba(255, 255, 255, 0.6)"};
+        border: 1px solid ${isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.12)"};
         border-radius: var(--radius-md);
         padding: 12px 16px;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(10px);
-        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        backdrop-filter: blur(12px);
+        box-shadow: ${isDark ? "inset 0 1px 1px rgba(255,255,255,0.05)" : "inset 0 1px 2px rgba(0,0,0,0.06), 0 1px 2px rgba(255,255,255,0.5)"};
+      }
+
+      #fast-bookmark-search-input-wrapper:hover {
+        border-color: ${isDark ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.25)"};
+        background: ${isDark ? "rgba(0, 0, 0, 0.35)" : "rgba(255, 255, 255, 0.8)"};
       }
 
       #fast-bookmark-search-input-wrapper:focus-within {
-        background: ${isDark ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.8)"};
+        background: ${isDark ? "rgba(0, 0, 0, 0.45)" : "rgba(255, 255, 255, 0.9)"};
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 15%, transparent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
         transform: translateY(-1px);
       }
 
@@ -2199,10 +2204,10 @@
             const highlightedTitle = highlightText(title, "title");
             const highlightedUrl = highlightText(item.url, "url");
 
-            // Add indentation spacer to align with folder toggles in tree view
-            const spacer = document.createElement("div");
-            spacer.className = "fast-bookmark-indent";
-            itemEl.appendChild(spacer);
+            // Removed indentation spacer for search results as per user request
+            // const spacer = document.createElement("div");
+            // spacer.className = "fast-bookmark-indent";
+            // itemEl.appendChild(spacer);
 
             const favicon = document.createElement("img");
             favicon.className = "fast-bookmark-favicon";
