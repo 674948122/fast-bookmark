@@ -196,20 +196,31 @@
 
         const primaryColor = isDark ? (settings.highlightColorDark || "#3730a3") : (settings.highlightColorLight || "#3730a3");
         const primaryTextColor = getContrastColor(primaryColor);
-        const opacity = (settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90) / 100;
+        // Ensure opacity is applied correctly for glassmorphism
+        // Default to slightly more transparent for better glass effect if not set
+        const baseOpacity = settings.backgroundOpacity !== undefined ? settings.backgroundOpacity : 90;
+        const opacity = Math.max(0.6, Math.min(0.95, baseOpacity / 100));
 
         style.textContent = `
       :host {
         --primary-color: ${primaryColor};
         --primary-text-color: ${primaryTextColor};
+        /* Glassmorphism: More transparent backgrounds */
         --bg-color: ${isDark ? `rgba(17, 24, 39, ${opacity})` : `rgba(255, 255, 255, ${opacity})`};
         --text-color: ${isDark ? "#f3f4f6" : "#1f2937"};
         --secondary-text: ${isDark ? "#9ca3af" : "#6b7280"};
-        --border-color: ${isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.06)"};
+        
+        /* Glassmorphism: Borders */
+        --border-color: ${isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.08)"};
+        --glass-border: ${isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.6)"};
+        
         --hover-bg: ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)"};
         --selected-bg: color-mix(in srgb, var(--primary-color) ${isDark ? "25%" : "15%"}, transparent);
-        --shadow-lg: ${isDark ? "-20px 0 50px -10px rgba(0, 0, 0, 0.5)" : "-20px 0 50px -10px rgba(0, 0, 0, 0.15)"};
+        
+        /* Refined Shadows */
+        --shadow-lg: ${isDark ? "-10px 0 40px rgba(0, 0, 0, 0.6)" : "-10px 0 40px rgba(0, 0, 0, 0.15)"};
         --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        
         --accent-color: var(--primary-color);
         --panel-width: ${settings.panelWidth || 400}px;
         --radius-md: 12px;
@@ -226,17 +237,17 @@
         box-sizing: border-box;
       }
 
-      /* Scrollbar */
+      /* Scrollbar - Thinner and more subtle */
       ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
       }
       ::-webkit-scrollbar-track {
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
         background: transparent;
-        border-radius: 3px;
+        border-radius: 10px;
       }
       :host(:hover) ::-webkit-scrollbar-thumb {
         background: var(--border-color);
@@ -251,7 +262,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.2); /* Lighter overlay */
+        background: rgba(0, 0, 0, 0.1); /* Lighter overlay for modern feel */
         display: none;
         justify-content: flex-end;
         align-items: stretch;
@@ -277,10 +288,11 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); /* Smoother spring-like */
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
         position: absolute;
         top: 0;
-        border-left: 1px solid var(--border-color);
+        /* Glass border effect */
+        border-left: 1px solid var(--glass-border);
       }
       
       :host([position="right"]) #fast-bookmark-modal {
@@ -304,7 +316,7 @@
       }
 
       #fast-bookmark-sidebar-header {
-        padding: 24px 24px 16px;
+        padding: 32px 28px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -318,11 +330,12 @@
       }
 
       #fast-bookmark-sidebar-title {
-        font-size: 20px;
-        font-weight: 700;
+        font-size: 24px;
+        font-weight: 800;
         color: var(--text-color);
         margin: 0;
-        letter-spacing: -0.02em;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
       }
 
       .fast-bookmark-icon-btn {
@@ -350,17 +363,20 @@
       #fast-bookmark-search-input-wrapper {
         display: flex;
         align-items: center;
-        background: ${isDark ? "rgba(0, 0, 0, 0.2)" : "rgba(255, 255, 255, 0.6)"};
-        border: 1px solid var(--border-color);
+        background: ${isDark ? "rgba(0, 0, 0, 0.2)" : "rgba(255, 255, 255, 0.5)"};
+        border: 1px solid var(--glass-border);
         border-radius: var(--radius-md);
-        padding: 10px 14px;
-        transition: all 0.2s ease;
+        padding: 12px 16px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(10px);
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
       }
 
       #fast-bookmark-search-input-wrapper:focus-within {
-        background: var(--bg-color);
+        background: ${isDark ? "rgba(0, 0, 0, 0.4)" : "rgba(255, 255, 255, 0.8)"};
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 15%, transparent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 15%, transparent);
+        transform: translateY(-1px);
       }
 
       #fast-bookmark-search-input {
@@ -415,17 +431,17 @@
       }
 
       .fast-bookmark-result-item {
-        width: 100%;
+        width: auto;
         box-sizing: border-box;
-        margin: 2px 0;
+        margin: 4px 12px;
         border: 1px solid transparent;
         background: transparent;
-        padding: 8px 12px;
+        padding: 10px 12px;
         display: flex;
         align-items: center;
         cursor: pointer;
-        transition: all 0.2s ease;
-        gap: 10px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 12px;
         user-select: none;
         border-radius: var(--radius-sm);
         position: relative;
@@ -433,9 +449,9 @@
 
       .fast-bookmark-result-item:hover {
         background: var(--hover-bg);
-        border-color: var(--border-color);
-        transform: translateX(4px);
-        box-shadow: var(--shadow-sm);
+        border-color: var(--glass-border);
+        transform: translateY(-1px) scale(1.005);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       }
 
       .fast-bookmark-result-item.fast-bookmark-hidden {
@@ -449,7 +465,8 @@
 
       .fast-bookmark-result-item.fast-bookmark-selected {
         background: var(--selected-bg);
-        border-color: color-mix(in srgb, var(--primary-color) 30%, transparent);
+        border-color: color-mix(in srgb, var(--primary-color) 40%, transparent);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary-color) 20%, transparent);
       }
 
       .fast-bookmark-result-item:hover .fast-bookmark-actions {
@@ -552,12 +569,12 @@
 
       .fast-bookmark-result-title {
         font-weight: 500;
-        font-size: 14px;
+        font-size: 15px;
         color: var(--text-color);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        line-height: 1.4;
+        line-height: 1.5;
         flex: 1;
         min-width: 0;
       }
@@ -566,19 +583,20 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        margin-top: 1px;
+        margin-top: 2px;
         min-width: 0;
-        opacity: 0.85;
+        opacity: 0.9;
       }
 
       .fast-bookmark-result-url {
-        font-size: 12px;
+        font-size: 13px;
         color: var(--secondary-text);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         flex: 1;
         min-width: 0;
+        opacity: 0.8;
       }
 
       .fast-bookmark-time {
@@ -773,21 +791,26 @@
       
       #shortcut-input {
         width: 100%;
-        padding: 12px;
-        background: var(--hover-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        padding: 14px;
+        background: ${isDark ? "rgba(0, 0, 0, 0.2)" : "rgba(255, 255, 255, 0.5)"};
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
         color: var(--text-color);
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         font-size: 14px;
         text-align: center;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(5px);
+        font-weight: 600;
+        letter-spacing: 0.05em;
       }
 
       #shortcut-input:hover {
         border-color: var(--primary-color);
-        background: var(--bg-color);
+        background: ${isDark ? "rgba(0, 0, 0, 0.3)" : "rgba(255, 255, 255, 0.7)"};
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       }
 
       .btn {
@@ -842,11 +865,11 @@
         position: absolute;
         top: 0;
         bottom: 0;
-        /* Adjusted for new padding/indent */
-        left: calc(var(--tree-level) * 24px + 21px); 
+        /* Adjusted for new padding/indent: was 21px, added 12px margin = 33px */
+        left: calc(var(--tree-level) * 24px + 33px); 
         width: 1px;
         background-color: var(--border-color);
-        opacity: 0.6;
+        opacity: 0.4;
         pointer-events: none;
       }
 
