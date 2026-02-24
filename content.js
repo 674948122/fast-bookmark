@@ -1205,17 +1205,23 @@
           
           <div class="settings-group-title" data-i18n="groupBehavior">${getMsg("groupBehavior")}</div>
           <div class="settings-group">
-             <div class="settings-row">
-               <label class="settings-label" data-i18n="openModeLabel">${getMsg("openModeLabel")}</label>
-               <div style="display: flex; gap: 12px;">
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
-                    <input type="radio" name="openMode" value="current" style="accent-color: var(--primary-color);">
-                    <span data-i18n="openModeCurrent">${getMsg("openModeCurrent")}</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
-                    <input type="radio" name="openMode" value="new" style="accent-color: var(--primary-color);">
-                    <span data-i18n="openModeNew">${getMsg("openModeNew")}</span>
-                  </label>
+             <div class="settings-row" style="display: block;">
+               <div style="display: flex; align-items: center; justify-content: space-between;">
+                   <label class="settings-label" style="margin-bottom: 0;" data-i18n="openModeLabel">${getMsg("openModeLabel")}</label>
+                   <div style="display: flex; gap: 12px;">
+                      <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                        <input type="radio" name="openMode" value="current" style="accent-color: var(--primary-color);">
+                        <span data-i18n="openModeCurrent">${getMsg("openModeCurrent")}</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px;">
+                        <input type="radio" name="openMode" value="new" style="accent-color: var(--primary-color);">
+                        <span data-i18n="openModeNew">${getMsg("openModeNew")}</span>
+                      </label>
+                   </div>
+               </div>
+               <div class="settings-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  <span data-i18n="openModeHint">${getMsg("openModeHint")}</span>
                </div>
              </div>
              <div class="settings-row">
