@@ -187,5 +187,11 @@
   },
   "groupBehavior": {
     "message": "Behavior"
+  },
+  "footerText": {
+    "message": "If you like this extension, please give us a star or feedback!"
+  },
+  "groupAbout": {
+    "message": "About"
   }
 }

@@ -187,5 +187,11 @@
   },
   "groupBehavior": {
     "message": "行为"
+  },
+  "footerText": {
+    "message": "如果您喜欢这个扩展，请给我们一个 Star 或反馈问题！"
+  },
+  "groupAbout": {
+    "message": "关于"
   }
 }
