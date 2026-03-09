@@ -2445,6 +2445,15 @@
     function toggle(force) {
         isVisible = force !== undefined ? force : !isVisible;
         if (isVisible) {
+            // Ensure clean state when opening
+            if (modalContainer) {
+                 modalContainer.classList.remove("mode-settings", "mode-edit", "mode-delete");
+            }
+            // Hide all modals to be safe
+            if (settingsModal) settingsModal.style.display = "none";
+            if (editModal) editModal.style.display = "none";
+            if (deleteModal) deleteModal.style.display = "none";
+
             document.body.style.overflow = "hidden";
             loadSettings(() => {
                 container.style.setProperty("display", "block", "important");
@@ -2511,6 +2520,12 @@
                     settingsModal.style.display = "none";
                     editModal.style.display = "none";
                     deleteModal.style.display = "none";
+                    
+                    // Clear all mode classes to restore main view visibility
+                    if (modalContainer) {
+                        modalContainer.classList.remove("mode-settings", "mode-edit", "mode-delete");
+                    }
+
                     container.style.setProperty("display", "none", "important");
                     container.style.setProperty(
                         "visibility",
